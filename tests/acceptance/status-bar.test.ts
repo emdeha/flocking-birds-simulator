@@ -56,7 +56,7 @@ const deriveMetrics = (state: SimulationState) => ({
 
 // All scenarios @skip until US-8 is in progress
 describe("US-8: Status Bar with Live Metrics", () => {
-  describe.skip("Status bar displays correct counts on load", () => {
+  describe("Status bar displays correct counts on load", () => {
     it("Given the simulator loads, then bird count is approximately 50, predator count is 0, obstacle count is 0", () => {
       // Given: default initial state
       const state = createInitialState();
@@ -125,7 +125,7 @@ describe("US-8: Status Bar with Live Metrics", () => {
     });
   });
 
-  describe.skip("Counts are derived, not stored separately", () => {
+  describe("Counts are derived, not stored separately", () => {
     it("Given state with 3 birds, 2 obstacles, and 1 predator, then metrics reflect array lengths", () => {
       // Given: state with known entity counts
       const state = createSimulationState({

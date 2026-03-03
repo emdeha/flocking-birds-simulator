@@ -73,6 +73,8 @@ const initialize = (): void => {
 
     updateStatusBar(statusBarElement, {
       birdCount: state.birds.length,
+      predatorCount: state.predators.length,
+      obstacleCount: state.obstacles.length,
       fps,
     });
 
