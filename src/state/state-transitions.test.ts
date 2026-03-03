@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { updateFlockingParam, addBird, addBirdRandom, removeBird, addObstacle, clearObstacles } from "./state-transitions";
+import { updateFlockingParam, addBird, addBirdRandom, removeBird, addObstacle, clearObstacles, addPredator } from "./state-transitions";
 import { createInitialState } from "./simulation-state";
 import type { SimulationState } from "../types/simulation-types";
 import { vectorMagnitude } from "../types/vector";
@@ -114,5 +114,18 @@ describe("clearObstacles", () => {
 
     expect(nextState.obstacles.length).toBe(0);
     expect(state.obstacles.length).toBe(2);
+  });
+});
+
+describe("addPredator", () => {
+  it("appends a predator with given position, without mutating original state", () => {
+    const state = createEmptyState();
+    const position = { x: 30, y: -10, z: 5 };
+
+    const nextState = addPredator(state, position);
+
+    expect(nextState.predators.length).toBe(1);
+    expect(nextState.predators[0].position).toEqual(position);
+    expect(state.predators.length).toBe(0);
   });
 });

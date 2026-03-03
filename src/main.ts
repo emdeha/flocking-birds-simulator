@@ -1,5 +1,5 @@
 import { createInitialState } from "./state/simulation-state";
-import { updateFlockingParam, addBird, addBirdRandom, removeBird, addObstacle, clearObstacles } from "./state/state-transitions";
+import { updateFlockingParam, addBird, addBirdRandom, removeBird, addObstacle, clearObstacles, addPredator } from "./state/state-transitions";
 import { simulateTick } from "./simulation/tick";
 import { createSceneManager } from "./renderer/scene-manager";
 import { createBirdRenderer } from "./renderer/bird-renderer";
@@ -34,6 +34,7 @@ const initialize = (): void => {
   const addBirdBtn = getRequiredElement("add-bird-btn") as HTMLButtonElement;
   const removeBirdBtn = getRequiredElement("remove-bird-btn") as HTMLButtonElement;
   const clearObstaclesBtn = getRequiredElement("clear-obstacles-btn") as HTMLButtonElement;
+  const addPredatorBtn = getRequiredElement("add-predator-btn") as HTMLButtonElement;
   const viewportHint = getRequiredElement("viewport-hint");
 
   let state: SimulationState = createInitialState();
@@ -115,6 +116,16 @@ const initialize = (): void => {
       const worldRadius = normalizedRadius * OBSTACLE_RADIUS_SCALE;
       state = addObstacle(state, worldPos, Math.max(worldRadius, 3));
     },
+  });
+
+  addPredatorBtn.addEventListener("click", () => {
+    const { min, max } = state.parameters.worldBounds;
+    const position = {
+      x: min.x + Math.random() * (max.x - min.x),
+      y: min.y + Math.random() * (max.y - min.y),
+      z: min.z + Math.random() * (max.z - min.z),
+    };
+    state = addPredator(state, position);
   });
 
   clearObstaclesBtn.addEventListener("click", () => {

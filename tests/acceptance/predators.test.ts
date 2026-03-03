@@ -29,18 +29,12 @@ import {
 } from "./test-helpers";
 import type { SimulationState } from "./test-helpers";
 
-// Placeholder imports -- crafter replaces with real implementations
-// import { addPredator } from "../../src/state/state-transitions";
-// import { simulateTick } from "../../src/simulation/tick";
-const addPredator = (
-  state: SimulationState,
-  _position: { x: number; y: number; z: number }
-): SimulationState => state;
-const simulateTick = (state: SimulationState, _deltaTime: number): SimulationState => state;
+import { addPredator } from "../../src/state/state-transitions";
+import { simulateTick } from "../../src/simulation/tick";
 
 // All scenarios @skip until US-4 is in progress
 describe("US-4: Predator Entities", () => {
-  describe.skip("Add predator via side panel", () => {
+  describe("Add predator via side panel", () => {
     it("Given no predators, when 'Add Predator' is pressed, then predator count becomes 1", () => {
       // Given: state with no predators
       const state = createSimulationState({ predators: [] });
@@ -78,7 +72,7 @@ describe("US-4: Predator Entities", () => {
     });
   });
 
-  describe.skip("Birds flee from predator", () => {
+  describe("Birds flee from predator", () => {
     it("Given a bird near a predator, when simulation runs, then the bird moves away from the predator", () => {
       // Given: a bird near a predator
       const birds = [{
@@ -177,7 +171,7 @@ describe("US-4: Predator Entities", () => {
     });
   });
 
-  describe.skip("Flee is distinct from obstacle avoidance", () => {
+  describe("Flee is distinct from obstacle avoidance", () => {
     it("Given a bird near a predator vs near an obstacle at same distance, then flee produces a larger displacement than avoidance", () => {
       // Given: a bird near a predator at distance 15
       const birdNearPredator = [{
@@ -240,7 +234,7 @@ describe("US-4: Predator Entities", () => {
     });
   });
 
-  describe.skip("Multiple predators fragment the flock", () => {
+  describe("Multiple predators fragment the flock", () => {
     it("Given 3 predators at different positions, when simulation runs with nearby birds, then birds move away from all predators", () => {
       // Given: 3 predators spread across the scene
       const predators = [

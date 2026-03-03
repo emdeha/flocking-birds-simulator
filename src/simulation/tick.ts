@@ -9,6 +9,7 @@ import {
 } from "./flocking";
 import { integrateBird } from "./integrator";
 import { computeObstacleAvoidance } from "./avoidance";
+import { computePredatorFlee } from "./flee";
 
 const ZERO: Vector3 = { x: 0, y: 0, z: 0 };
 
@@ -16,9 +17,10 @@ const simulateTick = (
   state: SimulationState,
   deltaTime: number
 ): SimulationState => {
-  const { birds, obstacles, parameters } = state;
+  const { birds, obstacles, predators, parameters } = state;
   const { flocking, neighborRadius, separationRadius, maxSpeed, maxForce, worldBounds,
-    obstacleAvoidanceRadius, obstacleAvoidanceWeight } =
+    obstacleAvoidanceRadius, obstacleAvoidanceWeight,
+    predatorFleeRadius, predatorFleeWeight } =
     parameters;
 
   const positions = birds.map((b) => b.position);
@@ -32,12 +34,14 @@ const simulateTick = (
     const alignment = computeAlignment(bird, neighborBirds);
     const cohesion = computeCohesion(bird, neighborBirds);
     const avoidance = computeObstacleAvoidance(bird, obstacles, obstacleAvoidanceRadius, obstacleAvoidanceWeight);
+    const flee = computePredatorFlee(bird, predators, predatorFleeRadius, predatorFleeWeight);
 
     const combinedForce = [
       vectorScale(separation, flocking.separationWeight),
       vectorScale(alignment, flocking.alignmentWeight),
       vectorScale(cohesion, flocking.cohesionWeight),
       avoidance,
+      flee,
     ].reduce((acc, f) => vectorAdd(acc, f), ZERO);
 
     return integrateBird(bird, combinedForce, deltaTime, maxSpeed, maxForce, worldBounds);
