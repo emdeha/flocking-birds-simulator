@@ -19,5 +19,55 @@ events:
   s: EXECUTED
   sid: 01-01
   t: '2026-03-03T09:57:20Z'
+- d: PASS
+  p: COMMIT
+  s: EXECUTED
+  sid: 01-01
+  t: '2026-03-03T09:58:16Z'
+- d: PASS
+  p: PREPARE
+  s: EXECUTED
+  sid: 01-02
+  t: '2026-03-03T10:00:17Z'
+- d: PASS
+  p: RED_ACCEPTANCE
+  s: EXECUTED
+  sid: 01-02
+  t: '2026-03-03T10:00:26Z'
+- d: PASS
+  p: RED_UNIT
+  s: EXECUTED
+  sid: 01-02
+  t: '2026-03-03T10:02:35Z'
+- d: PASS
+  p: GREEN
+  s: EXECUTED
+  sid: 01-02
+  t: '2026-03-03T10:05:57Z'
+- d: PASS
+  p: COMMIT
+  s: EXECUTED
+  sid: 01-02
+  t: '2026-03-03T10:06:43Z'
+- d: PASS
+  p: PREPARE
+  s: EXECUTED
+  sid: 01-03
+  t: '2026-03-03T10:09:16Z'
+- d: PASS
+  p: RED_ACCEPTANCE
+  s: EXECUTED
+  sid: 01-03
+  t: '2026-03-03T10:10:23Z'
+- d: PASS
+  p: RED_UNIT
+  s: EXECUTED
+  sid: 01-03
+  t: '2026-03-03T10:10:23Z'
+- d: PASS
+  p: GREEN
+  s: EXECUTED
+  sid: 01-03
+  t: '2026-03-03T10:13:48Z'
 project_id: bird-flocking-simulator
 schema_version: '3.0'
