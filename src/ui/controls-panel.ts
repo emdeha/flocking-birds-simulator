@@ -7,4 +7,15 @@ const createSliderBinding = (
   });
 };
 
-export { createSliderBinding };
+const createSliderWithDisplay = (
+  slider: HTMLInputElement,
+  display: HTMLElement,
+  onChange: (value: number) => void
+): void => {
+  createSliderBinding(slider, (value) => {
+    display.textContent = value.toFixed(2);
+    onChange(value);
+  });
+};
+
+export { createSliderBinding, createSliderWithDisplay };

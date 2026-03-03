@@ -4,21 +4,31 @@ import { simulateTick } from "./simulation/tick";
 import { createSceneManager } from "./renderer/scene-manager";
 import { createBirdRenderer } from "./renderer/bird-renderer";
 import { createCameraController } from "./renderer/camera-controller";
-import { createSliderBinding } from "./ui/controls-panel";
+import { createSliderWithDisplay } from "./ui/controls-panel";
 import { updateStatusBar } from "./ui/status-bar";
 import { computeNextFrame, computeFps } from "./loop/game-loop";
 import type { SimulationState } from "./types/simulation-types";
+import type { FlockingParameters } from "./types/simulation-types";
 
 const MAX_BIRDS = 200;
 
-const initialize = (): void => {
-  const viewportContainer = document.getElementById("viewport");
-  const statusBarElement = document.getElementById("status-bar");
-  const separationSlider = document.getElementById("separation-slider") as HTMLInputElement | null;
-
-  if (!viewportContainer || !statusBarElement || !separationSlider) {
-    throw new Error("Required DOM elements not found");
+const getRequiredElement = (id: string): HTMLElement => {
+  const element = document.getElementById(id);
+  if (!element) {
+    throw new Error(`Required DOM element not found: ${id}`);
   }
+  return element;
+};
+
+const initialize = (): void => {
+  const viewportContainer = getRequiredElement("viewport");
+  const statusBarElement = getRequiredElement("status-bar");
+  const separationSlider = getRequiredElement("separation-slider") as HTMLInputElement;
+  const separationDisplay = getRequiredElement("separation-value");
+  const alignmentSlider = getRequiredElement("alignment-slider") as HTMLInputElement;
+  const alignmentDisplay = getRequiredElement("alignment-value");
+  const cohesionSlider = getRequiredElement("cohesion-slider") as HTMLInputElement;
+  const cohesionDisplay = getRequiredElement("cohesion-value");
 
   let state: SimulationState = createInitialState();
 
@@ -29,16 +39,20 @@ const initialize = (): void => {
     sceneManager.renderer.domElement
   );
 
-  const separationValueDisplay = document.getElementById("separation-value");
+  const bindFlockingSlider = (
+    slider: HTMLInputElement,
+    display: HTMLElement,
+    paramName: keyof FlockingParameters
+  ): void => {
+    slider.value = String(state.parameters.flocking[paramName]);
+    createSliderWithDisplay(slider, display, (value: number) => {
+      state = updateFlockingParam(state, paramName, value);
+    });
+  };
 
-  separationSlider.value = String(state.parameters.flocking.separationWeight);
-
-  createSliderBinding(separationSlider, (value: number) => {
-    state = updateFlockingParam(state, "separationWeight", value);
-    if (separationValueDisplay) {
-      separationValueDisplay.textContent = value.toFixed(2);
-    }
-  });
+  bindFlockingSlider(separationSlider, separationDisplay, "separationWeight");
+  bindFlockingSlider(alignmentSlider, alignmentDisplay, "alignmentWeight");
+  bindFlockingSlider(cohesionSlider, cohesionDisplay, "cohesionWeight");
 
   let previousTime = performance.now();
   let fps = 60;
