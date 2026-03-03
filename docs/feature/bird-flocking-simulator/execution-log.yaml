@@ -69,5 +69,10 @@ events:
   s: EXECUTED
   sid: 01-03
   t: '2026-03-03T10:13:48Z'
+- d: PASS
+  p: COMMIT
+  s: EXECUTED
+  sid: 01-03
+  t: '2026-03-03T10:14:46Z'
 project_id: bird-flocking-simulator
 schema_version: '3.0'
