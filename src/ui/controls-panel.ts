@@ -57,4 +57,13 @@ const bindSpeedSlider = (
   });
 };
 
-export { createSliderBinding, createSliderWithDisplay, bindBirdButtons, bindPlayPauseButton, bindSpeedSlider };
+const bindResetButton = (
+  button: HTMLButtonElement,
+  onReset: () => void
+): void => {
+  button.addEventListener("click", () => {
+    onReset();
+  });
+};
+
+export { createSliderBinding, createSliderWithDisplay, bindBirdButtons, bindPlayPauseButton, bindSpeedSlider, bindResetButton };

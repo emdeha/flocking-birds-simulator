@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { updateFlockingParam, addBird, addBirdRandom, removeBird, addObstacle, clearObstacles, addPredator, togglePlayback, setSpeed } from "./state-transitions";
+import { updateFlockingParam, addBird, addBirdRandom, removeBird, addObstacle, clearObstacles, addPredator, togglePlayback, setSpeed, resetState } from "./state-transitions";
 import { createInitialState } from "./simulation-state";
 import type { SimulationState } from "../types/simulation-types";
 import { vectorMagnitude } from "../types/vector";
@@ -172,5 +172,35 @@ describe("setSpeed", () => {
     const result = setSpeed(state, input);
 
     expect(result.simulationSpeed).toBe(expected);
+  });
+});
+
+describe("resetState", () => {
+  it("returns state with 50 birds, default parameters, no predators or obstacles, running at 1.0x speed", () => {
+    const result = resetState();
+
+    expect(result.birds.length).toBe(50);
+    expect(result.parameters.flocking.separationWeight).toBe(0.5);
+    expect(result.parameters.flocking.alignmentWeight).toBe(0.7);
+    expect(result.parameters.flocking.cohesionWeight).toBe(0.6);
+    expect(result.predators.length).toBe(0);
+    expect(result.obstacles.length).toBe(0);
+    expect(result.playbackState).toBe("running");
+    expect(result.simulationSpeed).toBe(1.0);
+  });
+
+  it("produces birds with positions within world bounds and non-zero velocities", () => {
+    const result = resetState();
+    const { min, max } = result.parameters.worldBounds;
+
+    result.birds.forEach((bird) => {
+      expect(bird.position.x).toBeGreaterThanOrEqual(min.x);
+      expect(bird.position.x).toBeLessThanOrEqual(max.x);
+      expect(bird.position.y).toBeGreaterThanOrEqual(min.y);
+      expect(bird.position.y).toBeLessThanOrEqual(max.y);
+      expect(bird.position.z).toBeGreaterThanOrEqual(min.z);
+      expect(bird.position.z).toBeLessThanOrEqual(max.z);
+      expect(vectorMagnitude(bird.velocity)).toBeGreaterThan(0);
+    });
   });
 });

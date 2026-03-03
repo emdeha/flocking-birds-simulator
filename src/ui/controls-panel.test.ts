@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createSliderBinding, createSliderWithDisplay, bindBirdButtons, bindPlayPauseButton, bindSpeedSlider } from "./controls-panel";
+import { createSliderBinding, createSliderWithDisplay, bindBirdButtons, bindPlayPauseButton, bindSpeedSlider, bindResetButton } from "./controls-panel";
 
 const createSliderElement = (attrs: {
   id: string;
@@ -170,5 +170,21 @@ describe("Speed slider binding", () => {
 
     expect(capturedValues).toEqual([2.5]);
     expect(display.textContent).toBe("2.50x");
+  });
+});
+
+describe("Reset button binding", () => {
+  it("invokes onReset callback when button is clicked", () => {
+    const button = document.createElement("button");
+    button.textContent = "Reset";
+    const capturedCalls: Array<string> = [];
+
+    bindResetButton(button, () => {
+      capturedCalls.push("reset");
+    });
+
+    button.click();
+
+    expect(capturedCalls).toEqual(["reset"]);
   });
 });

@@ -23,15 +23,10 @@ import {
   createPredator,
   vectorMagnitude,
 } from "./test-helpers";
-import type { SimulationState } from "./test-helpers";
+import { resetState } from "../../src/state/state-transitions";
 
-// Placeholder imports -- crafter replaces with real implementations
-// import { resetState } from "../../src/state/state-transitions";
-const resetState = (): SimulationState => createSimulationState({ birds: createBirds(50) });
-
-// All scenarios @skip until US-7 is in progress
 describe("US-7: Reset to Defaults", () => {
-  describe.skip("Reset restores default bird count", () => {
+  describe("Reset restores default bird count", () => {
     it("Given 200 birds with modified parameters, when reset is pressed, then bird count returns to approximately 50", () => {
       // Given: heavily modified state (this represents what the user has done)
       const _modifiedState = createSimulationState({
@@ -75,7 +70,7 @@ describe("US-7: Reset to Defaults", () => {
     });
   });
 
-  describe.skip("Reset removes all predators and obstacles", () => {
+  describe("Reset removes all predators and obstacles", () => {
     it("Given 5 predators and 12 obstacles, when reset is pressed, then all are removed", () => {
       // Given: state with many entities (representing user modifications)
       const _modifiedState = createSimulationState({
@@ -96,7 +91,7 @@ describe("US-7: Reset to Defaults", () => {
     });
   });
 
-  describe.skip("Reset restores default slider values", () => {
+  describe("Reset restores default slider values", () => {
     it("Given all sliders at non-default values, when reset is pressed, then all return to defaults", () => {
       // Given: non-default slider values (representing user modifications)
       const _modifiedState = createSimulationState({
@@ -135,7 +130,7 @@ describe("US-7: Reset to Defaults", () => {
     });
   });
 
-  describe.skip("Reset resumes a paused simulation", () => {
+  describe("Reset resumes a paused simulation", () => {
     it("Given the simulation is paused, when reset is pressed, then the simulation is running", () => {
       // Given: paused simulation
       const _pausedState = createSimulationState({ playbackState: "paused" });
@@ -148,7 +143,7 @@ describe("US-7: Reset to Defaults", () => {
     });
   });
 
-  describe.skip("Reset produces valid simulation state", () => {
+  describe("Reset produces valid simulation state", () => {
     it("Given reset is triggered, then all birds have valid positions and non-zero velocities", () => {
       // When: reset is triggered
       const resetResult = resetState();

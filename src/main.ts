@@ -1,10 +1,10 @@
 import { createInitialState } from "./state/simulation-state";
-import { updateFlockingParam, addBird, addBirdRandom, removeBird, addObstacle, clearObstacles, addPredator, togglePlayback, setSpeed } from "./state/state-transitions";
+import { updateFlockingParam, addBird, addBirdRandom, removeBird, addObstacle, clearObstacles, addPredator, togglePlayback, setSpeed, resetState } from "./state/state-transitions";
 import { simulateTick } from "./simulation/tick";
 import { createSceneManager } from "./renderer/scene-manager";
 import { createBirdRenderer } from "./renderer/bird-renderer";
 import { createCameraController } from "./renderer/camera-controller";
-import { createSliderWithDisplay, bindBirdButtons, bindPlayPauseButton, bindSpeedSlider } from "./ui/controls-panel";
+import { createSliderWithDisplay, bindBirdButtons, bindPlayPauseButton, bindSpeedSlider, bindResetButton } from "./ui/controls-panel";
 import { createViewportInputHandler } from "./ui/viewport-input";
 import { screenToWorldPosition } from "./renderer/raycaster";
 import { updateStatusBar } from "./ui/status-bar";
@@ -38,6 +38,7 @@ const initialize = (): void => {
   const removeBirdBtn = getRequiredElement("remove-bird-btn") as HTMLButtonElement;
   const clearObstaclesBtn = getRequiredElement("clear-obstacles-btn") as HTMLButtonElement;
   const addPredatorBtn = getRequiredElement("add-predator-btn") as HTMLButtonElement;
+  const resetBtn = getRequiredElement("reset-btn") as HTMLButtonElement;
   const viewportHint = getRequiredElement("viewport-hint");
 
   let state: SimulationState = createInitialState();
@@ -142,6 +143,24 @@ const initialize = (): void => {
 
   clearObstaclesBtn.addEventListener("click", () => {
     state = clearObstacles(state);
+  });
+
+  const syncSlidersToState = (): void => {
+    separationSlider.value = String(state.parameters.flocking.separationWeight);
+    separationDisplay.textContent = state.parameters.flocking.separationWeight.toFixed(2);
+    alignmentSlider.value = String(state.parameters.flocking.alignmentWeight);
+    alignmentDisplay.textContent = state.parameters.flocking.alignmentWeight.toFixed(2);
+    cohesionSlider.value = String(state.parameters.flocking.cohesionWeight);
+    cohesionDisplay.textContent = state.parameters.flocking.cohesionWeight.toFixed(2);
+    speedSlider.value = String(state.simulationSpeed);
+    speedDisplay.textContent = `${state.simulationSpeed.toFixed(2)}x`;
+    playPauseBtn.textContent = state.playbackState === "running" ? "Pause" : "Play";
+  };
+
+  bindResetButton(resetBtn, () => {
+    state = resetState();
+    syncSlidersToState();
+    updateHintVisibility();
   });
 
   updateHintVisibility();

@@ -1,5 +1,6 @@
 import type { FlockingParameters, SimulationState, Bird, Obstacle, Predator } from "../types/simulation-types";
 import type { Vector3 } from "../types/vector";
+import { createInitialState } from "./simulation-state";
 
 const updateFlockingParam = (
   state: SimulationState,
@@ -96,4 +97,14 @@ const setSpeed = (
   simulationSpeed: Math.min(MAX_SPEED, Math.max(MIN_SPEED, speed)),
 });
 
-export { updateFlockingParam, addBird, addBirdRandom, removeBird, addObstacle, clearObstacles, addPredator, togglePlayback, setSpeed };
+const DEFAULT_BIRD_COUNT = 50;
+
+const resetState = (): SimulationState => {
+  const baseState = createInitialState();
+  return {
+    ...baseState,
+    birds: Array.from({ length: DEFAULT_BIRD_COUNT }, () => createRandomBird(baseState)),
+  };
+};
+
+export { updateFlockingParam, addBird, addBirdRandom, removeBird, addObstacle, clearObstacles, addPredator, togglePlayback, setSpeed, resetState };
