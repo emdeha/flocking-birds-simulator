@@ -31,22 +31,9 @@ import {
 } from "./test-helpers";
 import type { SimulationState } from "./test-helpers";
 
-// These imports will resolve once production code is implemented.
-// For now they serve as the contract the crafter must fulfill.
-//
-// import { simulateTick } from "../../src/simulation/tick";
-// import { createInitialState } from "../../src/state/simulation-state";
-// import { updateFlockingParam } from "../../src/state/state-transitions";
-
-// Placeholder: the crafter replaces these with real imports.
-// The tests define the contract; production code fulfills it.
-const simulateTick = (state: SimulationState, _deltaTime: number): SimulationState => state;
-const createInitialState = (): SimulationState => createSimulationState({ birds: createBirds(10) });
-const updateFlockingParam = (
-  state: SimulationState,
-  _param: string,
-  _value: number
-): SimulationState => state;
+import { simulateTick } from "../../src/simulation/tick";
+import { createInitialState } from "../../src/state/simulation-state";
+import { updateFlockingParam } from "../../src/state/state-transitions";
 
 // ---------------------------------------------------------------------------
 // WALKING SKELETON SCENARIOS -- These are ACTIVE (no skip)
