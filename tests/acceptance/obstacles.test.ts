@@ -25,27 +25,11 @@ import {
   vectorDistance,
   runSimulationTicks,
 } from "./test-helpers";
-import type { SimulationState } from "./test-helpers";
+import { addObstacle, clearObstacles, updateFlockingParam } from "../../src/state/state-transitions";
+import { simulateTick } from "../../src/simulation/tick";
 
-// Placeholder imports -- crafter replaces with real implementations
-// import { addObstacle, clearObstacles, updateFlockingParam } from "../../src/state/state-transitions";
-// import { simulateTick } from "../../src/simulation/tick";
-const addObstacle = (
-  state: SimulationState,
-  _position: { x: number; y: number; z: number },
-  _radius: number
-): SimulationState => state;
-const clearObstacles = (state: SimulationState): SimulationState => state;
-const updateFlockingParam = (
-  state: SimulationState,
-  _param: string,
-  _value: number
-): SimulationState => state;
-const simulateTick = (state: SimulationState, _deltaTime: number): SimulationState => state;
-
-// All scenarios @skip until US-3 is in progress
 describe("US-3: Obstacles via Drag Interaction", () => {
-  describe.skip("Drag creates obstacle", () => {
+  describe("Drag creates obstacle", () => {
     it("Given no obstacles, when an obstacle is created at position (50, 0, 0) with radius 10, then obstacle count is 1", () => {
       // Given: state with no obstacles
       const state = createSimulationState({ obstacles: [] });
@@ -97,7 +81,7 @@ describe("US-3: Obstacles via Drag Interaction", () => {
     });
   });
 
-  describe.skip("Birds avoid obstacles", () => {
+  describe("Birds avoid obstacles", () => {
     it("Given a bird heading directly toward an obstacle, when simulation runs, then the bird steers away from the obstacle", () => {
       // Given: a bird heading directly toward an obstacle
       const birds = [
@@ -188,7 +172,7 @@ describe("US-3: Obstacles via Drag Interaction", () => {
     });
   });
 
-  describe.skip("Clear all obstacles", () => {
+  describe("Clear all obstacles", () => {
     it("Given 3 obstacles, when 'Clear obstacles' is pressed, then all obstacles are removed", () => {
       // Given: state with 3 obstacles
       const state = createSimulationState({
@@ -223,7 +207,7 @@ describe("US-3: Obstacles via Drag Interaction", () => {
     });
   });
 
-  describe.skip("Obstacles persist through parameter changes", () => {
+  describe("Obstacles persist through parameter changes", () => {
     it("Given 2 obstacles, when separation slider is changed, then obstacles remain", () => {
       // Given: state with 2 obstacles
       const state = createSimulationState({

@@ -1,5 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { createViewportClickHandler } from "./viewport-input";
+import { createViewportInputHandler } from "./viewport-input";
+
+type DragResult = {
+  readonly centerX: number;
+  readonly centerY: number;
+  readonly radius: number;
+};
 
 const createMockCanvas = (): HTMLCanvasElement => {
   const canvas = document.createElement("canvas");
@@ -9,13 +15,16 @@ const createMockCanvas = (): HTMLCanvasElement => {
   return canvas;
 };
 
-describe("Viewport click handler", () => {
-  it("invokes the callback with normalized coordinates on a short click within threshold", () => {
+describe("Viewport input handler", () => {
+  it("invokes the click callback with normalized coordinates on a short click within threshold", () => {
     const canvas = createMockCanvas();
     const capturedClicks: Array<{ normalizedX: number; normalizedY: number }> = [];
 
-    createViewportClickHandler(canvas, (normalizedX, normalizedY) => {
-      capturedClicks.push({ normalizedX, normalizedY });
+    createViewportInputHandler(canvas, {
+      onClick: (normalizedX, normalizedY) => {
+        capturedClicks.push({ normalizedX, normalizedY });
+      },
+      onDrag: () => {},
     });
 
     canvas.dispatchEvent(new MouseEvent("mousedown", { clientX: 400, clientY: 300 }));
@@ -26,26 +35,37 @@ describe("Viewport click handler", () => {
     expect(capturedClicks[0].normalizedY).toBeCloseTo(0, 1);
   });
 
-  it("does not invoke the callback when mouse moves beyond the distance threshold", () => {
+  it("invokes the drag callback with center and radius when mouse moves beyond distance threshold", () => {
     const canvas = createMockCanvas();
+    const capturedDrags: Array<DragResult> = [];
     const capturedClicks: Array<{ normalizedX: number; normalizedY: number }> = [];
 
-    createViewportClickHandler(canvas, (normalizedX, normalizedY) => {
-      capturedClicks.push({ normalizedX, normalizedY });
+    createViewportInputHandler(canvas, {
+      onClick: (normalizedX, normalizedY) => {
+        capturedClicks.push({ normalizedX, normalizedY });
+      },
+      onDrag: (centerX, centerY, radius) => {
+        capturedDrags.push({ centerX, centerY, radius });
+      },
     });
 
     canvas.dispatchEvent(new MouseEvent("mousedown", { clientX: 400, clientY: 300 }));
     canvas.dispatchEvent(new MouseEvent("mouseup", { clientX: 420, clientY: 320 }));
 
     expect(capturedClicks.length).toBe(0);
+    expect(capturedDrags.length).toBe(1);
+    expect(capturedDrags[0].radius).toBeGreaterThan(0);
   });
 
   it("normalizes coordinates to range [-1, 1] based on canvas dimensions", () => {
     const canvas = createMockCanvas();
     const capturedClicks: Array<{ normalizedX: number; normalizedY: number }> = [];
 
-    createViewportClickHandler(canvas, (normalizedX, normalizedY) => {
-      capturedClicks.push({ normalizedX, normalizedY });
+    createViewportInputHandler(canvas, {
+      onClick: (normalizedX, normalizedY) => {
+        capturedClicks.push({ normalizedX, normalizedY });
+      },
+      onDrag: () => {},
     });
 
     canvas.dispatchEvent(new MouseEvent("mousedown", { clientX: 0, clientY: 0 }));
@@ -54,5 +74,27 @@ describe("Viewport click handler", () => {
     expect(capturedClicks.length).toBe(1);
     expect(capturedClicks[0].normalizedX).toBeCloseTo(-1, 1);
     expect(capturedClicks[0].normalizedY).toBeCloseTo(1, 1);
+  });
+
+  it("computes drag center as midpoint and radius as half the drag distance in normalized coordinates", () => {
+    const canvas = createMockCanvas();
+    const capturedDrags: Array<DragResult> = [];
+
+    createViewportInputHandler(canvas, {
+      onClick: () => {},
+      onDrag: (centerX, centerY, radius) => {
+        capturedDrags.push({ centerX, centerY, radius });
+      },
+    });
+
+    canvas.dispatchEvent(new MouseEvent("mousedown", { clientX: 100, clientY: 100 }));
+    canvas.dispatchEvent(new MouseEvent("mouseup", { clientX: 300, clientY: 100 }));
+
+    expect(capturedDrags.length).toBe(1);
+    const startNormX = (100 / 800) * 2 - 1;
+    const endNormX = (300 / 800) * 2 - 1;
+    const expectedCenterX = (startNormX + endNormX) / 2;
+    expect(capturedDrags[0].centerX).toBeCloseTo(expectedCenterX, 4);
+    expect(capturedDrags[0].radius).toBeGreaterThan(0);
   });
 });

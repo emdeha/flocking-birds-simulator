@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { updateFlockingParam, addBird, addBirdRandom, removeBird } from "./state-transitions";
+import { updateFlockingParam, addBird, addBirdRandom, removeBird, addObstacle, clearObstacles } from "./state-transitions";
 import { createInitialState } from "./simulation-state";
 import type { SimulationState } from "../types/simulation-types";
 import { vectorMagnitude } from "../types/vector";
@@ -82,5 +82,37 @@ describe("removeBird", () => {
     const emptyState = createEmptyState();
     const stillEmpty = removeBird(emptyState);
     expect(stillEmpty.birds.length).toBe(0);
+  });
+});
+
+describe("addObstacle", () => {
+  it("appends an obstacle with given position and radius, without mutating original state", () => {
+    const state = createEmptyState();
+    const position = { x: 50, y: 10, z: -5 };
+    const radius = 12;
+
+    const nextState = addObstacle(state, position, radius);
+
+    expect(nextState.obstacles.length).toBe(1);
+    expect(nextState.obstacles[0].position).toEqual(position);
+    expect(nextState.obstacles[0].radius).toBe(radius);
+    expect(state.obstacles.length).toBe(0);
+  });
+});
+
+describe("clearObstacles", () => {
+  it("removes all obstacles, without mutating original state", () => {
+    const state: SimulationState = {
+      ...createInitialState(),
+      obstacles: [
+        { position: { x: 10, y: 0, z: 0 }, radius: 5 },
+        { position: { x: -10, y: 0, z: 0 }, radius: 8 },
+      ],
+    };
+
+    const nextState = clearObstacles(state);
+
+    expect(nextState.obstacles.length).toBe(0);
+    expect(state.obstacles.length).toBe(2);
   });
 });

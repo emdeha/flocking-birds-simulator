@@ -1,11 +1,11 @@
 import { createInitialState } from "./state/simulation-state";
-import { updateFlockingParam, addBird, addBirdRandom, removeBird } from "./state/state-transitions";
+import { updateFlockingParam, addBird, addBirdRandom, removeBird, addObstacle, clearObstacles } from "./state/state-transitions";
 import { simulateTick } from "./simulation/tick";
 import { createSceneManager } from "./renderer/scene-manager";
 import { createBirdRenderer } from "./renderer/bird-renderer";
 import { createCameraController } from "./renderer/camera-controller";
 import { createSliderWithDisplay, bindBirdButtons } from "./ui/controls-panel";
-import { createViewportClickHandler } from "./ui/viewport-input";
+import { createViewportInputHandler } from "./ui/viewport-input";
 import { screenToWorldPosition } from "./renderer/raycaster";
 import { updateStatusBar } from "./ui/status-bar";
 import { computeNextFrame, computeFps } from "./loop/game-loop";
@@ -33,6 +33,7 @@ const initialize = (): void => {
   const cohesionDisplay = getRequiredElement("cohesion-value");
   const addBirdBtn = getRequiredElement("add-bird-btn") as HTMLButtonElement;
   const removeBirdBtn = getRequiredElement("remove-bird-btn") as HTMLButtonElement;
+  const clearObstaclesBtn = getRequiredElement("clear-obstacles-btn") as HTMLButtonElement;
   const viewportHint = getRequiredElement("viewport-hint");
 
   let state: SimulationState = createInitialState();
@@ -79,9 +80,10 @@ const initialize = (): void => {
 
   const randomVelocityComponent = (): number => (Math.random() - 0.5) * 4;
 
-  createViewportClickHandler(
-    sceneManager.renderer.domElement,
-    (normalizedX: number, normalizedY: number) => {
+  const OBSTACLE_RADIUS_SCALE = 20;
+
+  createViewportInputHandler(sceneManager.renderer.domElement, {
+    onClick: (normalizedX: number, normalizedY: number) => {
       if (state.birds.length >= MAX_BIRDS) {
         return;
       }
@@ -100,8 +102,24 @@ const initialize = (): void => {
       };
       state = addBird(state, worldPos, velocity);
       updateHintVisibility();
-    }
-  );
+    },
+    onDrag: (centerNormX: number, centerNormY: number, normalizedRadius: number) => {
+      const worldPos = screenToWorldPosition(
+        centerNormX,
+        centerNormY,
+        sceneManager.camera.position,
+        { x: 0, y: 0, z: 0 },
+        sceneManager.camera.fov,
+        sceneManager.camera.aspect
+      );
+      const worldRadius = normalizedRadius * OBSTACLE_RADIUS_SCALE;
+      state = addObstacle(state, worldPos, Math.max(worldRadius, 3));
+    },
+  });
+
+  clearObstaclesBtn.addEventListener("click", () => {
+    state = clearObstacles(state);
+  });
 
   updateHintVisibility();
 

@@ -1,4 +1,4 @@
-import type { FlockingParameters, SimulationState, Bird } from "../types/simulation-types";
+import type { FlockingParameters, SimulationState, Bird, Obstacle } from "../types/simulation-types";
 import type { Vector3 } from "../types/vector";
 
 const updateFlockingParam = (
@@ -58,4 +58,18 @@ const removeBird = (state: SimulationState): SimulationState => {
   };
 };
 
-export { updateFlockingParam, addBird, addBirdRandom, removeBird };
+const addObstacle = (
+  state: SimulationState,
+  position: Vector3,
+  radius: number
+): SimulationState => ({
+  ...state,
+  obstacles: [...state.obstacles, { position, radius }],
+});
+
+const clearObstacles = (state: SimulationState): SimulationState => ({
+  ...state,
+  obstacles: [],
+});
+
+export { updateFlockingParam, addBird, addBirdRandom, removeBird, addObstacle, clearObstacles };
