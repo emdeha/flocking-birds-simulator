@@ -1,0 +1,248 @@
+roadmap:
+  project_id: bird-flocking-simulator
+  created_at: '2026-03-03T09:44:30Z'
+  total_steps: 12
+  phases: 4
+phases:
+- id: '01'
+  name: 'Foundation (Walking Skeleton + Camera)'
+  steps:
+  - id: 01-01
+    name: 'Project scaffolding, core types, and vector math'
+    description: >
+      Initialize Vite + TypeScript + Vitest project. Define Vector3 type with
+      pure math operations. Define Bird, Obstacle, Predator, FlockingParameters,
+      SimulationState types. Create state factory and transition functions.
+    criteria:
+      - 'Vector3 add, subtract, scale, normalize, magnitude, and distance return correct results for known inputs'
+      - 'createInitialState returns state with ~10 birds, default parameters (sep 0.5, align 0.7, coh 0.6), running at 1.0x'
+      - 'Each bird in initial state has a position and non-zero velocity'
+      - 'updateFlockingParam returns new state with changed value; original state unchanged'
+      - 'All strict TypeScript compilation passes with zero errors'
+    files_to_modify:
+      - src/types/vector.ts
+      - src/types/simulation-types.ts
+      - src/state/simulation-state.ts
+      - src/state/state-transitions.ts
+      - src/types/vector.test.ts
+      - src/state/simulation-state.test.ts
+      - src/state/state-transitions.test.ts
+      - tsconfig.json
+      - package.json
+      - vite.config.ts
+      - vitest.config.ts
+  - id: 01-02
+    name: 'Simulation engine core (flocking, spatial index, physics)'
+    description: >
+      Implement spatial grid for O(n) neighbor lookup. Implement flocking rules
+      (separation, alignment, cohesion). Implement physics integrator. Implement
+      simulateTick orchestrator that produces next state from current state.
+    criteria:
+      - 'Spatial grid returns correct neighbor indices for birds within query radius'
+      - 'Two nearby birds with separation weight 1.0 move apart after one tick'
+      - 'Birds with high alignment converge toward uniform velocity direction over multiple ticks'
+      - 'Birds with high cohesion decrease average distance from flock center over multiple ticks'
+      - 'simulateTick returns a new state with updated positions; original state unchanged'
+    files_to_modify:
+      - src/simulation/spatial-index.ts
+      - src/simulation/flocking.ts
+      - src/simulation/integrator.ts
+      - src/simulation/tick.ts
+      - src/simulation/spatial-index.test.ts
+      - src/simulation/flocking.test.ts
+      - src/simulation/integrator.test.ts
+      - src/simulation/tick.test.ts
+  - id: 01-03
+    name: '3D renderer, game loop, and entry point (walking skeleton complete)'
+    description: >
+      Three.js scene with bird points and velocity lines. Camera controller with
+      OrbitControls (US-6). Game loop with requestAnimationFrame. Side panel with
+      separation slider. Status bar with bird count and FPS. Wire everything in
+      main.ts + index.html.
+    criteria:
+      - '3D viewport renders on page load without user action showing ~10 birds as points with velocity lines'
+      - 'Right-click-drag orbits camera; scroll wheel zooms; camera state is independent of simulation state'
+      - 'Separation slider in side panel changes bird spacing behavior within the next rendered frame'
+      - 'Status bar displays current bird count and FPS'
+      - 'Simulation runs continuously at interactive frame rate on a modern browser'
+    files_to_modify:
+      - src/renderer/scene-manager.ts
+      - src/renderer/bird-renderer.ts
+      - src/renderer/camera-controller.ts
+      - src/loop/game-loop.ts
+      - src/ui/controls-panel.ts
+      - src/ui/status-bar.ts
+      - src/main.ts
+      - index.html
+- id: '02'
+  name: 'Core Controls (Parameters + Status + Birds + Obstacles)'
+  steps:
+  - id: 02-01
+    name: 'Full flocking parameter controls (US-1)'
+    description: >
+      Add alignment and cohesion sliders to the side panel. All three sliders
+      labeled with current numeric values. Parameter changes reflected in
+      simulation on the next frame.
+    criteria:
+      - 'Alignment slider visible in side panel with range [0.0, 1.0] and labeled "Alignment"'
+      - 'Cohesion slider visible in side panel with range [0.0, 1.0] and labeled "Cohesion"'
+      - 'High alignment causes birds to converge toward uniform velocity direction'
+      - 'High cohesion causes birds to cluster more tightly'
+      - 'Each slider displays its current numeric value next to the label'
+    files_to_modify:
+      - src/ui/controls-panel.ts
+      - src/ui/controls-panel.test.ts
+  - id: 02-02
+    name: 'Status bar with live metrics (US-8)'
+    description: >
+      Display bird count, predator count, obstacle count, and FPS in the status
+      bar. All counts update on the same frame as the corresponding visual change.
+    criteria:
+      - 'Status bar visible at bottom of viewport displaying bird count, predator count, obstacle count, and FPS'
+      - 'Bird count updates on the same frame a bird is added or removed'
+      - 'Predator count updates on the same frame a predator is added'
+      - 'Obstacle count updates on the same frame an obstacle is added or cleared'
+      - 'FPS value reflects actual rendering frame rate'
+    files_to_modify:
+      - src/ui/status-bar.ts
+      - src/ui/status-bar.test.ts
+  - id: 02-03
+    name: 'Bird population management (US-2)'
+    description: >
+      Click-to-add bird at 3D position via raycasting. [+]/[-] buttons in side
+      panel. Empty state shows "Click to add birds" hint. [-] disabled at 0 birds.
+    criteria:
+      - 'Left-click in viewport spawns a bird at the clicked 3D position with a random velocity'
+      - '[+] button adds a bird at a random position; [-] button removes one bird'
+      - '[-] button is disabled when bird count is 0'
+      - 'Viewport displays "Click to add birds" hint when no birds exist'
+      - 'Newly added birds participate in flocking behavior immediately'
+    files_to_modify:
+      - src/ui/viewport-input.ts
+      - src/ui/controls-panel.ts
+      - src/renderer/raycaster.ts
+      - src/ui/viewport-input.test.ts
+      - src/renderer/raycaster.test.ts
+  - id: 02-04
+    name: 'Obstacles via drag interaction (US-3)'
+    description: >
+      Distinguish click from drag via time/distance threshold. Drag-to-create
+      obstacle in viewport. Obstacle avoidance physics in simulation engine.
+      "Clear obstacles" button in side panel.
+    criteria:
+      - 'Left-click-drag in viewport creates an obstacle in the dragged region'
+      - 'Short click (below threshold) adds a bird; longer drag adds an obstacle'
+      - 'Birds steer around obstacles rather than passing through them'
+      - '"Clear obstacles" button removes all obstacles and status bar shows "Obstacles: 0"'
+      - 'Obstacles persist when flocking parameters are changed'
+    files_to_modify:
+      - src/ui/viewport-input.ts
+      - src/simulation/avoidance.ts
+      - src/ui/controls-panel.ts
+      - src/simulation/avoidance.test.ts
+      - src/ui/viewport-input.test.ts
+- id: '03'
+  name: 'Advanced Features (Predators + Playback + Reset)'
+  steps:
+  - id: 03-01
+    name: 'Predator entities (US-4)'
+    description: >
+      "Add Predator" button in side panel. Predator flee physics distinct from
+      obstacle avoidance. Birds within flee range scatter; birds outside flee
+      range are unaffected.
+    criteria:
+      - '"Add Predator" button spawns a predator entity visible in the viewport'
+      - 'Birds within flee range move rapidly away from the predator'
+      - 'Birds outside flee range continue normal flocking unaffected'
+      - 'Flee response is visually stronger and faster than obstacle avoidance'
+      - 'Multiple predators produce cumulative flee effects on nearby birds'
+    files_to_modify:
+      - src/simulation/flee.ts
+      - src/ui/controls-panel.ts
+      - src/simulation/flee.test.ts
+  - id: 03-02
+    name: 'Playback controls (US-5)'
+    description: >
+      Play/pause toggle button. Speed slider [0.1x, 5.0x]. Entities added while
+      paused remain frozen until resume. Resume from exact frozen state with no
+      discontinuity.
+    criteria:
+      - 'Play/pause button toggles simulation; paused birds freeze at exact current positions with velocity vectors visible'
+      - 'Speed slider adjusts simulation rate within [0.1x, 5.0x] range'
+      - 'Birds or obstacles added while paused are frozen until the simulation resumes'
+      - 'Resuming continues from the exact frozen state with no position jump'
+      - 'Speed values outside [0.1, 5.0] are clamped to the valid range'
+    files_to_modify:
+      - src/ui/controls-panel.ts
+      - src/loop/game-loop.ts
+      - src/ui/controls-panel.test.ts
+      - src/loop/game-loop.test.ts
+  - id: 03-03
+    name: 'Reset to defaults (US-7)'
+    description: >
+      Reset button restores ~50 birds, default parameters (sep 0.5, align 0.7,
+      coh 0.6), no predators or obstacles, running at 1.0x speed. Reset from
+      paused state resumes running.
+    criteria:
+      - '"Reset" button restores ~50 birds with default flocking behavior'
+      - 'All sliders return to default values (separation 0.5, alignment 0.7, cohesion 0.6, speed 1.0x)'
+      - 'All predators and obstacles are removed; status bar reflects zeroed counts'
+      - 'Simulation resumes running if it was paused when reset is clicked'
+      - 'Reset birds have valid positions within world bounds and non-zero velocities'
+    files_to_modify:
+      - src/ui/controls-panel.ts
+      - src/state/state-transitions.ts
+      - src/ui/controls-panel.test.ts
+      - src/state/state-transitions.test.ts
+- id: '04'
+  name: 'Polish and Performance'
+  steps:
+  - id: 04-01
+    name: 'Performance optimization'
+    description: >
+      Verify 60 FPS target with 200 birds. Profile and optimize spatial grid
+      and renderer buffer updates if needed. Ensure simulation tick stays under
+      8ms and render under 8ms.
+    criteria:
+      - 'Simulation with 200 birds maintains 60 FPS on a modern desktop browser'
+      - 'Simulation tick completes within 8ms for 200 birds'
+      - 'Render pass completes within 8ms for 200 birds'
+      - 'No per-frame object allocation in the simulation hot path'
+      - 'Renderer reuses buffer geometry and updates positions via attribute writes'
+    files_to_modify:
+      - src/simulation/spatial-index.ts
+      - src/renderer/bird-renderer.ts
+  - id: 04-02
+    name: 'Visual polish and edge cases'
+    description: >
+      Predator visual distinction (different color or shape from birds). Obstacle
+      rendering as semi-transparent spheres. World bounds behavior (wrap or bounce).
+      Empty state hint styling.
+    criteria:
+      - 'Predators are visually distinct from birds (different color, size, or shape)'
+      - 'Obstacles render as semi-transparent geometric shapes in the viewport'
+      - 'Birds reaching world bounds wrap to the opposite side or bounce back'
+      - 'Empty state hint "Click to add birds" is clearly visible and styled'
+      - 'All entity types are visually distinguishable at a glance'
+    files_to_modify:
+      - src/renderer/obstacle-renderer.ts
+      - src/renderer/predator-renderer.ts
+      - src/renderer/bird-renderer.ts
+implementation_scope:
+  source_directories:
+  - src/types/
+  - src/simulation/
+  - src/state/
+  - src/renderer/
+  - src/ui/
+  - src/loop/
+  test_directories:
+  - tests/acceptance/
+  - src/**/*.test.ts
+  excluded_patterns:
+  - node_modules/**
+  - dist/**
+validation:
+  status: approved
+  reviewer: nw-software-crafter-reviewer
+  approved_at: '2026-03-03T09:50:00Z'

@@ -1,0 +1,185 @@
+journey:
+  name: bird-flocking-simulator
+  version: "1.0"
+  type: user-facing
+  research_depth: lightweight
+
+  user:
+    type: casual-curious
+    motivation: fun-and-creative-exploration
+    prior_knowledge: none-required
+
+  assumptions:
+    - id: A1
+      description: 3D scene supports orbit/zoom camera controls (standard 3D viewport interaction)
+    - id: A2
+      description: Predators are distinct from obstacles -- birds flee predators, birds avoid obstacles
+    - id: A3
+      description: Default bird count is approximately 50 on page load
+    - id: A4
+      description: Side panel is collapsible to allow full-screen viewport
+    - id: A5
+      description: Velocity vectors are rendered as lines extending from each bird point in the direction of travel
+
+  entry_point:
+    trigger: user-opens-web-page
+    initial_state: simulation-running-with-defaults
+    what_user_sees:
+      - 3D viewport with ~50 birds flocking
+      - side panel with controls visible
+      - status bar with live counts
+
+  steps:
+    - id: S1
+      name: observe-flocking
+      description: User watches birds flocking with default parameters
+      user_action: none (passive observation)
+      system_response: Birds flock in real-time following separation/alignment/cohesion rules
+      artifacts_produced:
+        - bird-positions
+        - velocity-vectors
+        - flock-formations
+
+    - id: S2
+      name: discover-controls
+      description: User notices side panel and explores available controls
+      user_action: Scans side panel controls
+      system_response: Controls are visible and labeled
+      controls:
+        - type: slider
+          name: separation
+          range: [0.0, 1.0]
+          default: 0.5
+        - type: slider
+          name: alignment
+          range: [0.0, 1.0]
+          default: 0.7
+        - type: slider
+          name: cohesion
+          range: [0.0, 1.0]
+          default: 0.6
+        - type: counter
+          name: bird-count
+          default: 50
+          actions: [increment, decrement]
+        - type: button
+          name: add-predator
+        - type: button
+          name: clear-obstacles
+        - type: button
+          name: reset
+        - type: playback
+          name: simulation-control
+          actions: [play, pause]
+        - type: slider
+          name: simulation-speed
+          range: [0.1, 5.0]
+          default: 1.0
+
+    - id: S3
+      name: adjust-parameters
+      description: User adjusts flocking behavior sliders
+      user_action: Drags separation/alignment/cohesion sliders
+      system_response: Bird behavior changes in real-time
+      artifacts_consumed:
+        - separation-weight
+        - alignment-weight
+        - cohesion-weight
+      artifacts_produced:
+        - updated-flock-behavior
+
+    - id: S4
+      name: interact-with-viewport
+      description: User clicks to add birds or drags to create obstacles
+      user_action: Click in viewport / drag in viewport
+      system_response: New bird spawned at click position / obstacle created at drag region
+      interactions:
+        - trigger: left-click-empty-space
+          result: spawn-bird-at-position
+        - trigger: left-click-drag
+          result: create-obstacle-at-region
+        - trigger: right-click-drag
+          result: orbit-camera
+        - trigger: scroll-wheel
+          result: zoom-camera
+
+    - id: S5
+      name: add-predator
+      description: User adds a predator entity to the scene
+      user_action: Clicks "Add Predator" button
+      system_response: Predator appears in scene, nearby birds flee
+      artifacts_produced:
+        - predator-entity
+        - flee-behavior
+
+    - id: S6
+      name: control-playback
+      description: User pauses, plays, or adjusts simulation speed
+      user_action: Clicks play/pause or adjusts speed slider
+      system_response: Simulation pauses/resumes or speed changes
+      states:
+        - running
+        - paused
+
+  shared_artifacts:
+    - id: SA1
+      name: bird-positions
+      type: array-of-3d-vectors
+      source: simulation-engine
+      consumers: [viewport-renderer, status-bar]
+    - id: SA2
+      name: velocity-vectors
+      type: array-of-3d-vectors
+      source: simulation-engine
+      consumers: [viewport-renderer]
+    - id: SA3
+      name: separation-weight
+      type: float-0-to-1
+      source: side-panel-slider
+      consumers: [simulation-engine]
+    - id: SA4
+      name: alignment-weight
+      type: float-0-to-1
+      source: side-panel-slider
+      consumers: [simulation-engine]
+    - id: SA5
+      name: cohesion-weight
+      type: float-0-to-1
+      source: side-panel-slider
+      consumers: [simulation-engine]
+    - id: SA6
+      name: simulation-speed
+      type: float-0.1-to-5.0
+      source: side-panel-slider
+      consumers: [simulation-engine]
+    - id: SA7
+      name: bird-count
+      type: integer
+      source: side-panel-counter-and-click-to-add
+      consumers: [simulation-engine, status-bar]
+    - id: SA8
+      name: predator-entities
+      type: array-of-entities
+      source: add-predator-button
+      consumers: [simulation-engine, viewport-renderer, status-bar]
+    - id: SA9
+      name: obstacle-entities
+      type: array-of-entities
+      source: viewport-drag-interaction
+      consumers: [simulation-engine, viewport-renderer, status-bar]
+    - id: SA10
+      name: simulation-state
+      type: enum(running, paused)
+      source: playback-controls
+      consumers: [simulation-engine, status-bar]
+
+  status_bar:
+    fields:
+      - label: Birds
+        source: SA7
+      - label: Predators
+        source: SA8
+      - label: Obstacles
+        source: SA9
+      - label: FPS
+        source: renderer-performance
