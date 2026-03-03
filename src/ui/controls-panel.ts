@@ -37,4 +37,24 @@ const bindBirdButtons = (
   });
 };
 
-export { createSliderBinding, createSliderWithDisplay, bindBirdButtons };
+const bindPlayPauseButton = (
+  button: HTMLButtonElement,
+  onToggle: () => void
+): void => {
+  button.addEventListener("click", () => {
+    onToggle();
+  });
+};
+
+const bindSpeedSlider = (
+  slider: HTMLInputElement,
+  display: HTMLElement,
+  onChange: (value: number) => void
+): void => {
+  createSliderBinding(slider, (value) => {
+    display.textContent = `${value.toFixed(2)}x`;
+    onChange(value);
+  });
+};
+
+export { createSliderBinding, createSliderWithDisplay, bindBirdButtons, bindPlayPauseButton, bindSpeedSlider };

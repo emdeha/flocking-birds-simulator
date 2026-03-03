@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createSliderBinding, createSliderWithDisplay, bindBirdButtons } from "./controls-panel";
+import { createSliderBinding, createSliderWithDisplay, bindBirdButtons, bindPlayPauseButton, bindSpeedSlider } from "./controls-panel";
 
 const createSliderElement = (attrs: {
   id: string;
@@ -130,5 +130,45 @@ describe("Bird add/remove button bindings", () => {
     removeButton.click();
 
     expect(capturedActions).toEqual(["add", "remove"]);
+  });
+});
+
+describe("Play/pause button binding", () => {
+  it("invokes onToggle callback when button is clicked and updates button text", () => {
+    const button = document.createElement("button");
+    button.textContent = "Pause";
+    const capturedCalls: Array<string> = [];
+
+    bindPlayPauseButton(button, () => {
+      capturedCalls.push("toggled");
+    });
+
+    button.click();
+
+    expect(capturedCalls).toEqual(["toggled"]);
+  });
+});
+
+describe("Speed slider binding", () => {
+  it("invokes onChange with parsed value and updates display when input changes", () => {
+    const slider = createSliderElement({
+      id: "speed-slider",
+      min: "0.1",
+      max: "5.0",
+      step: "0.1",
+      value: "1.0",
+    });
+    const display = createDisplayElement("speed-value", "1.0x");
+    const capturedValues: Array<number> = [];
+
+    bindSpeedSlider(slider, display, (value) => {
+      capturedValues.push(value);
+    });
+
+    slider.value = "2.5";
+    slider.dispatchEvent(new Event("input"));
+
+    expect(capturedValues).toEqual([2.5]);
+    expect(display.textContent).toBe("2.50x");
   });
 });

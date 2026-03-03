@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { updateFlockingParam, addBird, addBirdRandom, removeBird, addObstacle, clearObstacles, addPredator } from "./state-transitions";
+import { updateFlockingParam, addBird, addBirdRandom, removeBird, addObstacle, clearObstacles, addPredator, togglePlayback, setSpeed } from "./state-transitions";
 import { createInitialState } from "./simulation-state";
 import type { SimulationState } from "../types/simulation-types";
 import { vectorMagnitude } from "../types/vector";
@@ -127,5 +127,50 @@ describe("addPredator", () => {
     expect(nextState.predators.length).toBe(1);
     expect(nextState.predators[0].position).toEqual(position);
     expect(state.predators.length).toBe(0);
+  });
+});
+
+describe("togglePlayback", () => {
+  it("flips running to paused and paused to running, without mutating original state", () => {
+    const runningState: SimulationState = {
+      ...createInitialState(),
+      playbackState: "running",
+    };
+
+    const pausedState = togglePlayback(runningState);
+
+    expect(pausedState.playbackState).toBe("paused");
+    expect(runningState.playbackState).toBe("running");
+
+    const resumedState = togglePlayback(pausedState);
+
+    expect(resumedState.playbackState).toBe("running");
+    expect(pausedState.playbackState).toBe("paused");
+  });
+});
+
+describe("setSpeed", () => {
+  it("sets simulation speed to the given value, without mutating original state", () => {
+    const state = createInitialState();
+
+    const fastState = setSpeed(state, 2.5);
+
+    expect(fastState.simulationSpeed).toBe(2.5);
+    expect(state.simulationSpeed).toBe(1.0);
+  });
+
+  it.each([
+    { input: 0.0, expected: 0.1 },
+    { input: -1.0, expected: 0.1 },
+    { input: 0.1, expected: 0.1 },
+    { input: 5.0, expected: 5.0 },
+    { input: 5.1, expected: 5.0 },
+    { input: 100, expected: 5.0 },
+  ])("clamps speed $input to $expected within [0.1, 5.0] range", ({ input, expected }) => {
+    const state = createInitialState();
+
+    const result = setSpeed(state, input);
+
+    expect(result.simulationSpeed).toBe(expected);
   });
 });

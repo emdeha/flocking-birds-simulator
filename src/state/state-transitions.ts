@@ -80,4 +80,20 @@ const addPredator = (
   predators: [...state.predators, { position }],
 });
 
-export { updateFlockingParam, addBird, addBirdRandom, removeBird, addObstacle, clearObstacles, addPredator };
+const MIN_SPEED = 0.1;
+const MAX_SPEED = 5.0;
+
+const togglePlayback = (state: SimulationState): SimulationState => ({
+  ...state,
+  playbackState: state.playbackState === "running" ? "paused" : "running",
+});
+
+const setSpeed = (
+  state: SimulationState,
+  speed: number
+): SimulationState => ({
+  ...state,
+  simulationSpeed: Math.min(MAX_SPEED, Math.max(MIN_SPEED, speed)),
+});
+
+export { updateFlockingParam, addBird, addBirdRandom, removeBird, addObstacle, clearObstacles, addPredator, togglePlayback, setSpeed };

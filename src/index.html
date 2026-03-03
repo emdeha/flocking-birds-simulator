@@ -144,6 +144,24 @@
         <div id="side-panel">
           <h2>Controls</h2>
           <div class="control-group">
+            <label>Playback</label>
+            <div class="bird-controls">
+              <button id="play-pause-btn" type="button">Pause</button>
+            </div>
+          </div>
+          <div class="control-group">
+            <label for="speed-slider">Speed</label>
+            <input
+              type="range"
+              id="speed-slider"
+              min="0.1"
+              max="5.0"
+              step="0.1"
+              value="1.0"
+            />
+            <span class="slider-value" id="speed-value">1.00x</span>
+          </div>
+          <div class="control-group">
             <label>Birds</label>
             <div class="bird-controls">
               <button id="add-bird-btn" type="button">[+]</button>

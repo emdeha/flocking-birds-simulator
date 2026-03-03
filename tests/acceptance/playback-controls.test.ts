@@ -29,21 +29,12 @@ import {
 } from "./test-helpers";
 import type { SimulationState } from "./test-helpers";
 
-// Placeholder imports -- crafter replaces with real implementations
-// import { togglePlayback, setSpeed, addBird } from "../../src/state/state-transitions";
-// import { simulateTick } from "../../src/simulation/tick";
-const togglePlayback = (state: SimulationState): SimulationState => state;
-const setSpeed = (state: SimulationState, _speed: number): SimulationState => state;
-const addBird = (
-  state: SimulationState,
-  _position: { x: number; y: number; z: number },
-  _velocity: { x: number; y: number; z: number }
-): SimulationState => state;
-const simulateTick = (state: SimulationState, _deltaTime: number): SimulationState => state;
+import { togglePlayback, setSpeed, addBird } from "../../src/state/state-transitions";
+import { simulateTick } from "../../src/simulation/tick";
 
 // All scenarios @skip until US-5 is in progress
 describe("US-5: Playback and Speed Controls", () => {
-  describe.skip("Pause freezes all birds", () => {
+  describe("Pause freezes all birds", () => {
     it("Given a running simulation, when pause is toggled, then playback state becomes paused", () => {
       // Given: running simulation
       const state = createSimulationState({
@@ -96,7 +87,7 @@ describe("US-5: Playback and Speed Controls", () => {
     });
   });
 
-  describe.skip("Resume from paused state", () => {
+  describe("Resume from paused state", () => {
     it("Given a paused simulation, when play is toggled, then playback state becomes running", () => {
       // Given: paused simulation
       const state = createSimulationState({
@@ -135,7 +126,7 @@ describe("US-5: Playback and Speed Controls", () => {
     });
   });
 
-  describe.skip("Speed slider adjusts simulation rate", () => {
+  describe("Speed slider adjusts simulation rate", () => {
     it("Given simulation at 1.0x, when speed is set to 2.5x, then state reflects 2.5x speed", () => {
       // Given: default speed
       const state = createSimulationState({ simulationSpeed: 1.0 });
@@ -210,7 +201,7 @@ describe("US-5: Playback and Speed Controls", () => {
     });
   });
 
-  describe.skip("Adding birds while paused", () => {
+  describe("Adding birds while paused", () => {
     it("Given a paused simulation with 10 birds, when a bird is added, then bird count is 11 and simulation remains paused", () => {
       // Given: paused simulation
       const state = createSimulationState({

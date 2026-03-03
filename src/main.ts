@@ -1,10 +1,10 @@
 import { createInitialState } from "./state/simulation-state";
-import { updateFlockingParam, addBird, addBirdRandom, removeBird, addObstacle, clearObstacles, addPredator } from "./state/state-transitions";
+import { updateFlockingParam, addBird, addBirdRandom, removeBird, addObstacle, clearObstacles, addPredator, togglePlayback, setSpeed } from "./state/state-transitions";
 import { simulateTick } from "./simulation/tick";
 import { createSceneManager } from "./renderer/scene-manager";
 import { createBirdRenderer } from "./renderer/bird-renderer";
 import { createCameraController } from "./renderer/camera-controller";
-import { createSliderWithDisplay, bindBirdButtons } from "./ui/controls-panel";
+import { createSliderWithDisplay, bindBirdButtons, bindPlayPauseButton, bindSpeedSlider } from "./ui/controls-panel";
 import { createViewportInputHandler } from "./ui/viewport-input";
 import { screenToWorldPosition } from "./renderer/raycaster";
 import { updateStatusBar } from "./ui/status-bar";
@@ -31,6 +31,9 @@ const initialize = (): void => {
   const alignmentDisplay = getRequiredElement("alignment-value");
   const cohesionSlider = getRequiredElement("cohesion-slider") as HTMLInputElement;
   const cohesionDisplay = getRequiredElement("cohesion-value");
+  const playPauseBtn = getRequiredElement("play-pause-btn") as HTMLButtonElement;
+  const speedSlider = getRequiredElement("speed-slider") as HTMLInputElement;
+  const speedDisplay = getRequiredElement("speed-value");
   const addBirdBtn = getRequiredElement("add-bird-btn") as HTMLButtonElement;
   const removeBirdBtn = getRequiredElement("remove-bird-btn") as HTMLButtonElement;
   const clearObstaclesBtn = getRequiredElement("clear-obstacles-btn") as HTMLButtonElement;
@@ -60,6 +63,15 @@ const initialize = (): void => {
   bindFlockingSlider(separationSlider, separationDisplay, "separationWeight");
   bindFlockingSlider(alignmentSlider, alignmentDisplay, "alignmentWeight");
   bindFlockingSlider(cohesionSlider, cohesionDisplay, "cohesionWeight");
+
+  bindPlayPauseButton(playPauseBtn, () => {
+    state = togglePlayback(state);
+    playPauseBtn.textContent = state.playbackState === "running" ? "Pause" : "Play";
+  });
+
+  bindSpeedSlider(speedSlider, speedDisplay, (value: number) => {
+    state = setSpeed(state, value);
+  });
 
   const updateHintVisibility = (): void => {
     viewportHint.style.display = state.birds.length === 0 ? "block" : "none";

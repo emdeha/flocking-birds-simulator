@@ -17,6 +17,10 @@ const simulateTick = (
   state: SimulationState,
   deltaTime: number
 ): SimulationState => {
+  if (state.playbackState === "paused") {
+    return state;
+  }
+
   const { birds, obstacles, predators, parameters } = state;
   const { flocking, neighborRadius, separationRadius, maxSpeed, maxForce, worldBounds,
     obstacleAvoidanceRadius, obstacleAvoidanceWeight,
