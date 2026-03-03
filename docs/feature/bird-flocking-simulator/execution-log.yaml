@@ -1,3 +1,23 @@
-schema_version: "2.0"
-project_id: "bird-flocking-simulator"
-events: []
+events:
+- d: PASS
+  p: PREPARE
+  s: EXECUTED
+  sid: 01-01
+  t: '2026-03-03T09:54:42Z'
+- d: PASS
+  p: RED_ACCEPTANCE
+  s: EXECUTED
+  sid: 01-01
+  t: '2026-03-03T09:55:06Z'
+- d: PASS
+  p: RED_UNIT
+  s: EXECUTED
+  sid: 01-01
+  t: '2026-03-03T09:55:56Z'
+- d: PASS
+  p: GREEN
+  s: EXECUTED
+  sid: 01-01
+  t: '2026-03-03T09:57:20Z'
+project_id: bird-flocking-simulator
+schema_version: '3.0'
