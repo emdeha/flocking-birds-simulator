@@ -29,13 +29,35 @@ describe("Physics integrator", () => {
     expect(result.velocity.y).toBeGreaterThan(0);
   });
 
-  it("wraps position toroidally when exceeding world bounds", () => {
-    const bird = createBird({ x: 199, y: 0, z: 0 }, { x: 100, y: 0, z: 0 });
-    const force: Vector3 = { x: 0, y: 0, z: 0 };
+  it.each([
+    {
+      direction: "positive",
+      startPosition: { x: 199, y: 0, z: 0 },
+      velocity: { x: 100, y: 0, z: 0 },
+      expectedSide: "negative",
+    },
+    {
+      direction: "negative",
+      startPosition: { x: -199, y: 0, z: 0 },
+      velocity: { x: -100, y: 0, z: 0 },
+      expectedSide: "positive",
+    },
+  ])(
+    "wraps position toroidally to the $expectedSide side when exiting the $direction boundary",
+    ({ startPosition, velocity, expectedSide }) => {
+      const bird = createBird(startPosition, velocity);
+      const force: Vector3 = { x: 0, y: 0, z: 0 };
 
-    const result = integrateBird(bird, force, 1 / 60, 200, 0.1, defaultBounds);
+      const result = integrateBird(bird, force, 1 / 60, 200, 0.1, defaultBounds);
 
-    expect(result.position.x).toBeLessThan(200);
-    expect(result.position.x).toBeGreaterThanOrEqual(-200);
-  });
+      expect(result.position.x).toBeGreaterThanOrEqual(-200);
+      expect(result.position.x).toBeLessThan(200);
+
+      if (expectedSide === "negative") {
+        expect(result.position.x).toBeLessThan(0);
+      } else {
+        expect(result.position.x).toBeGreaterThan(0);
+      }
+    }
+  );
 });

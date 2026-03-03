@@ -3,6 +3,8 @@ import { updateFlockingParam, addBird, addBirdRandom, removeBird, addObstacle, c
 import { simulateTick } from "./simulation/tick";
 import { createSceneManager } from "./renderer/scene-manager";
 import { createBirdRenderer } from "./renderer/bird-renderer";
+import { createObstacleRenderer } from "./renderer/obstacle-renderer";
+import { createPredatorRenderer } from "./renderer/predator-renderer";
 import { createCameraController } from "./renderer/camera-controller";
 import { createSliderWithDisplay, bindBirdButtons, bindPlayPauseButton, bindSpeedSlider, bindResetButton } from "./ui/controls-panel";
 import { createViewportInputHandler } from "./ui/viewport-input";
@@ -45,6 +47,8 @@ const initialize = (): void => {
 
   const sceneManager = createSceneManager(viewportContainer);
   const birdRenderer = createBirdRenderer(sceneManager.scene, MAX_BIRDS);
+  const obstacleRenderer = createObstacleRenderer(sceneManager.scene);
+  const predatorRenderer = createPredatorRenderer(sceneManager.scene);
   const cameraController = createCameraController(
     sceneManager.camera,
     sceneManager.renderer.domElement
@@ -179,6 +183,8 @@ const initialize = (): void => {
     state = computeNextFrame(state, deltaTime, simulateTick);
 
     birdRenderer.update(state.birds);
+    obstacleRenderer.update(state.obstacles);
+    predatorRenderer.update(state.predators);
     cameraController.update();
     sceneManager.render();
 
