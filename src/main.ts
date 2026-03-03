@@ -1,10 +1,12 @@
 import { createInitialState } from "./state/simulation-state";
-import { updateFlockingParam } from "./state/state-transitions";
+import { updateFlockingParam, addBird, addBirdRandom, removeBird } from "./state/state-transitions";
 import { simulateTick } from "./simulation/tick";
 import { createSceneManager } from "./renderer/scene-manager";
 import { createBirdRenderer } from "./renderer/bird-renderer";
 import { createCameraController } from "./renderer/camera-controller";
-import { createSliderWithDisplay } from "./ui/controls-panel";
+import { createSliderWithDisplay, bindBirdButtons } from "./ui/controls-panel";
+import { createViewportClickHandler } from "./ui/viewport-input";
+import { screenToWorldPosition } from "./renderer/raycaster";
 import { updateStatusBar } from "./ui/status-bar";
 import { computeNextFrame, computeFps } from "./loop/game-loop";
 import type { SimulationState } from "./types/simulation-types";
@@ -29,6 +31,9 @@ const initialize = (): void => {
   const alignmentDisplay = getRequiredElement("alignment-value");
   const cohesionSlider = getRequiredElement("cohesion-slider") as HTMLInputElement;
   const cohesionDisplay = getRequiredElement("cohesion-value");
+  const addBirdBtn = getRequiredElement("add-bird-btn") as HTMLButtonElement;
+  const removeBirdBtn = getRequiredElement("remove-bird-btn") as HTMLButtonElement;
+  const viewportHint = getRequiredElement("viewport-hint");
 
   let state: SimulationState = createInitialState();
 
@@ -53,6 +58,52 @@ const initialize = (): void => {
   bindFlockingSlider(separationSlider, separationDisplay, "separationWeight");
   bindFlockingSlider(alignmentSlider, alignmentDisplay, "alignmentWeight");
   bindFlockingSlider(cohesionSlider, cohesionDisplay, "cohesionWeight");
+
+  const updateHintVisibility = (): void => {
+    viewportHint.style.display = state.birds.length === 0 ? "block" : "none";
+    removeBirdBtn.disabled = state.birds.length === 0;
+  };
+
+  bindBirdButtons(addBirdBtn, removeBirdBtn, {
+    onAdd: () => {
+      if (state.birds.length < MAX_BIRDS) {
+        state = addBirdRandom(state);
+        updateHintVisibility();
+      }
+    },
+    onRemove: () => {
+      state = removeBird(state);
+      updateHintVisibility();
+    },
+  });
+
+  const randomVelocityComponent = (): number => (Math.random() - 0.5) * 4;
+
+  createViewportClickHandler(
+    sceneManager.renderer.domElement,
+    (normalizedX: number, normalizedY: number) => {
+      if (state.birds.length >= MAX_BIRDS) {
+        return;
+      }
+      const worldPos = screenToWorldPosition(
+        normalizedX,
+        normalizedY,
+        sceneManager.camera.position,
+        { x: 0, y: 0, z: 0 },
+        sceneManager.camera.fov,
+        sceneManager.camera.aspect
+      );
+      const velocity = {
+        x: randomVelocityComponent(),
+        y: randomVelocityComponent(),
+        z: randomVelocityComponent(),
+      };
+      state = addBird(state, worldPos, velocity);
+      updateHintVisibility();
+    }
+  );
+
+  updateHintVisibility();
 
   let previousTime = performance.now();
   let fps = 60;

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createSliderBinding, createSliderWithDisplay } from "./controls-panel";
+import { createSliderBinding, createSliderWithDisplay, bindBirdButtons } from "./controls-panel";
 
 const createSliderElement = (attrs: {
   id: string;
@@ -112,5 +112,23 @@ describe("Slider with display binding", () => {
 
     expect(display.textContent).toBe("0.95");
     expect(capturedValues).toEqual([0.1, 0.95]);
+  });
+});
+
+describe("Bird add/remove button bindings", () => {
+  it("invokes onAdd when add button is clicked and onRemove when remove button is clicked", () => {
+    const addButton = document.createElement("button");
+    const removeButton = document.createElement("button");
+    const capturedActions: Array<string> = [];
+
+    bindBirdButtons(addButton, removeButton, {
+      onAdd: () => { capturedActions.push("add"); },
+      onRemove: () => { capturedActions.push("remove"); },
+    });
+
+    addButton.click();
+    removeButton.click();
+
+    expect(capturedActions).toEqual(["add", "remove"]);
   });
 });

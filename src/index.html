@@ -85,6 +85,43 @@
         text-align: right;
       }
 
+      .bird-controls {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .bird-controls button {
+        flex: 1;
+        padding: 6px 0;
+        background: #0f3460;
+        border: 1px solid #1a4080;
+        color: #e0e0e0;
+        font-size: 16px;
+        cursor: pointer;
+        border-radius: 4px;
+      }
+
+      .bird-controls button:hover:not(:disabled) {
+        background: #1a4080;
+      }
+
+      .bird-controls button:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+
+      #viewport-hint {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: #8090b0;
+        font-size: 16px;
+        pointer-events: none;
+        letter-spacing: 0.5px;
+      }
+
       #status-bar {
         height: 28px;
         background: #0f3460;
@@ -101,9 +138,18 @@
   <body>
     <div id="app">
       <div id="main-area">
-        <div id="viewport"></div>
+        <div id="viewport">
+          <div id="viewport-hint">Click to add birds</div>
+        </div>
         <div id="side-panel">
           <h2>Controls</h2>
+          <div class="control-group">
+            <label>Birds</label>
+            <div class="bird-controls">
+              <button id="add-bird-btn" type="button">[+]</button>
+              <button id="remove-bird-btn" type="button">[-]</button>
+            </div>
+          </div>
           <div class="control-group">
             <label for="separation-slider">Separation</label>
             <input

@@ -18,4 +18,23 @@ const createSliderWithDisplay = (
   });
 };
 
-export { createSliderBinding, createSliderWithDisplay };
+type BirdButtonCallbacks = {
+  readonly onAdd: () => void;
+  readonly onRemove: () => void;
+};
+
+const bindBirdButtons = (
+  addButton: HTMLButtonElement,
+  removeButton: HTMLButtonElement,
+  callbacks: BirdButtonCallbacks
+): void => {
+  addButton.addEventListener("click", () => {
+    callbacks.onAdd();
+  });
+
+  removeButton.addEventListener("click", () => {
+    callbacks.onRemove();
+  });
+};
+
+export { createSliderBinding, createSliderWithDisplay, bindBirdButtons };

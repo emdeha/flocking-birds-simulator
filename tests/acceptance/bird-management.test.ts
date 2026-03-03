@@ -31,21 +31,12 @@ import {
 } from "./test-helpers";
 import type { SimulationState } from "./test-helpers";
 
-// Placeholder imports -- crafter replaces with real implementations
-// import { addBird, addBirdRandom, removeBird } from "../../src/state/state-transitions";
-// import { simulateTick } from "../../src/simulation/tick";
-const addBird = (
-  state: SimulationState,
-  _position: { x: number; y: number; z: number },
-  _velocity: { x: number; y: number; z: number }
-): SimulationState => state;
-const addBirdRandom = (state: SimulationState): SimulationState => state;
-const removeBird = (state: SimulationState): SimulationState => state;
-const simulateTick = (state: SimulationState, _deltaTime: number): SimulationState => state;
+import { addBird, addBirdRandom, removeBird } from "../../src/state/state-transitions";
+import { simulateTick } from "../../src/simulation/tick";
 
 // All scenarios @skip until US-2 is in progress
 describe("US-2: Bird Population Management", () => {
-  describe.skip("Click to add bird at position", () => {
+  describe("Click to add bird at position", () => {
     it("Given 50 birds, when a bird is added at position (10, 20, 30), then bird count becomes 51", () => {
       // Given: state with 50 birds
       const state = createSimulationState({ birds: createBirds(50) });
@@ -100,7 +91,7 @@ describe("US-2: Bird Population Management", () => {
     });
   });
 
-  describe.skip("Panel increment adds bird at random position", () => {
+  describe("Panel increment adds bird at random position", () => {
     it("Given 50 birds, when [+] button is pressed, then bird count becomes 51", () => {
       // Given: state with 50 birds
       const state = createSimulationState({ birds: createBirds(50) });
@@ -125,7 +116,7 @@ describe("US-2: Bird Population Management", () => {
     });
   });
 
-  describe.skip("Panel decrement removes bird", () => {
+  describe("Panel decrement removes bird", () => {
     it("Given 50 birds, when [-] button is pressed, then bird count becomes 49", () => {
       // Given: state with 50 birds
       const state = createSimulationState({ birds: createBirds(50) });
@@ -160,7 +151,7 @@ describe("US-2: Bird Population Management", () => {
     });
   });
 
-  describe.skip("Empty simulation state", () => {
+  describe("Empty simulation state", () => {
     it("Given 0 birds, then the state indicates an empty simulation", () => {
       // Given: state with 0 birds
       const state = createSimulationState({ birds: [] });
@@ -173,7 +164,7 @@ describe("US-2: Bird Population Management", () => {
     });
   });
 
-  describe.skip("Added birds participate in flocking", () => {
+  describe("Added birds participate in flocking", () => {
     it("Given a newly added bird near a flock, when simulation runs, then the new bird moves with the flock", () => {
       // Given: a small flock moving in one direction
       const flock = createBirds(5, () => ({
