@@ -60,4 +60,29 @@ describe("Physics integrator", () => {
       }
     }
   );
+
+  it("clamps force magnitude to maxForce when force exceeds the limit", () => {
+    const bird = createBird({ x: 0, y: 0, z: 0 }, { x: 0, y: 0, z: 0 });
+    const largeForce: Vector3 = { x: 10, y: 0, z: 0 };
+    const smallForce: Vector3 = { x: 0.01, y: 0, z: 0 };
+    const dt = 1 / 60;
+
+    const resultLarge = integrateBird(bird, largeForce, dt, 100, 0.1, defaultBounds);
+    const resultSmall = integrateBird(bird, smallForce, dt, 100, 0.1, defaultBounds);
+
+    expect(resultLarge.velocity.x).toBeCloseTo(0.1, 4);
+    expect(resultSmall.velocity.x).toBeCloseTo(0.01, 4);
+  });
+
+  it("clamps velocity to maxSpeed after force is applied", () => {
+    const bird = createBird({ x: 0, y: 0, z: 0 }, { x: 3.99, y: 0, z: 0 });
+    const force: Vector3 = { x: 0.05, y: 0, z: 0 };
+
+    const result = integrateBird(bird, force, 1, 4, 0.1, defaultBounds);
+
+    const speed = Math.sqrt(
+      result.velocity.x ** 2 + result.velocity.y ** 2 + result.velocity.z ** 2
+    );
+    expect(speed).toBeLessThanOrEqual(4 + 0.001);
+  });
 });

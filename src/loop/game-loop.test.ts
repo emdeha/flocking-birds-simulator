@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { computeNextFrame } from "./game-loop";
+import { computeNextFrame, computeFps } from "./game-loop";
 import type { SimulationState } from "../types/simulation-types";
 
 const createTestState = (overrides?: Partial<SimulationState>): SimulationState => ({
@@ -76,5 +76,17 @@ describe("Game loop frame computation", () => {
     computeNextFrame(state, 1 / 60, fakeTick);
 
     expect(capturedDeltas[0]).toBeCloseTo(2 / 60);
+  });
+});
+
+describe("computeFps", () => {
+  it("calculates frames per second from elapsed time between frames", () => {
+    const fps = computeFps(1016.67, 1000);
+    expect(fps).toBeCloseTo(60, 0);
+  });
+
+  it("returns 60 as fallback when elapsed time is zero or negative", () => {
+    expect(computeFps(1000, 1000)).toBe(60);
+    expect(computeFps(1000, 1001)).toBe(60);
   });
 });

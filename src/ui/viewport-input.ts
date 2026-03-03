@@ -58,15 +58,5 @@ const createViewportInputHandler = (
   });
 };
 
-const createViewportClickHandler = (
-  canvas: HTMLCanvasElement,
-  onClick: ClickCallback
-): void => {
-  createViewportInputHandler(canvas, {
-    onClick,
-    onDrag: () => {},
-  });
-};
-
-export { createViewportClickHandler, createViewportInputHandler };
+export { createViewportInputHandler };
 export type { ClickCallback, DragCallback, ViewportInputCallbacks };

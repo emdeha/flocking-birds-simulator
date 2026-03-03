@@ -97,4 +97,50 @@ describe("Viewport input handler", () => {
     expect(capturedDrags[0].centerX).toBeCloseTo(expectedCenterX, 4);
     expect(capturedDrags[0].radius).toBeGreaterThan(0);
   });
+
+  it("computes drag center Y and radius correctly for vertical drags", () => {
+    const canvas = createMockCanvas();
+    const capturedDrags: Array<DragResult> = [];
+
+    createViewportInputHandler(canvas, {
+      onClick: () => {},
+      onDrag: (centerX, centerY, radius) => {
+        capturedDrags.push({ centerX, centerY, radius });
+      },
+    });
+
+    canvas.dispatchEvent(new MouseEvent("mousedown", { clientX: 400, clientY: 100 }));
+    canvas.dispatchEvent(new MouseEvent("mouseup", { clientX: 400, clientY: 300 }));
+
+    expect(capturedDrags.length).toBe(1);
+    const startNormY = -((100 / 600) * 2 - 1);
+    const endNormY = -((300 / 600) * 2 - 1);
+    const expectedCenterY = (startNormY + endNormY) / 2;
+    const ndy = endNormY - startNormY;
+    const expectedRadius = Math.abs(ndy) / 2;
+
+    expect(capturedDrags[0].centerY).toBeCloseTo(expectedCenterY, 4);
+    expect(capturedDrags[0].radius).toBeCloseTo(expectedRadius, 4);
+  });
+
+  it("treats exactly threshold distance movement as a click, not a drag", () => {
+    const canvas = createMockCanvas();
+    const capturedClicks: Array<{ normalizedX: number; normalizedY: number }> = [];
+    const capturedDrags: Array<DragResult> = [];
+
+    createViewportInputHandler(canvas, {
+      onClick: (normalizedX, normalizedY) => {
+        capturedClicks.push({ normalizedX, normalizedY });
+      },
+      onDrag: (centerX, centerY, radius) => {
+        capturedDrags.push({ centerX, centerY, radius });
+      },
+    });
+
+    canvas.dispatchEvent(new MouseEvent("mousedown", { clientX: 400, clientY: 300 }));
+    canvas.dispatchEvent(new MouseEvent("mouseup", { clientX: 403, clientY: 304 }));
+
+    expect(capturedClicks.length).toBe(1);
+    expect(capturedDrags.length).toBe(0);
+  });
 });

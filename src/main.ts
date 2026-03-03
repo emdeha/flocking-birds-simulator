@@ -14,7 +14,9 @@ import { computeNextFrame, computeFps } from "./loop/game-loop";
 import type { SimulationState } from "./types/simulation-types";
 import type { FlockingParameters } from "./types/simulation-types";
 
-const MAX_BIRDS = 200;
+const MAX_BIRDS = 1000;
+const FPS_SMOOTHING = 0.9;
+const OBSTACLE_RADIUS_SCALE = 50;
 
 const getRequiredElement = (id: string): HTMLElement => {
   const element = document.getElementById(id);
@@ -24,85 +26,114 @@ const getRequiredElement = (id: string): HTMLElement => {
   return element;
 };
 
-const initialize = (): void => {
-  const viewportContainer = getRequiredElement("viewport");
-  const statusBarElement = getRequiredElement("status-bar");
-  const separationSlider = getRequiredElement("separation-slider") as HTMLInputElement;
-  const separationDisplay = getRequiredElement("separation-value");
-  const alignmentSlider = getRequiredElement("alignment-slider") as HTMLInputElement;
-  const alignmentDisplay = getRequiredElement("alignment-value");
-  const cohesionSlider = getRequiredElement("cohesion-slider") as HTMLInputElement;
-  const cohesionDisplay = getRequiredElement("cohesion-value");
-  const playPauseBtn = getRequiredElement("play-pause-btn") as HTMLButtonElement;
-  const speedSlider = getRequiredElement("speed-slider") as HTMLInputElement;
-  const speedDisplay = getRequiredElement("speed-value");
-  const addBirdBtn = getRequiredElement("add-bird-btn") as HTMLButtonElement;
-  const removeBirdBtn = getRequiredElement("remove-bird-btn") as HTMLButtonElement;
-  const clearObstaclesBtn = getRequiredElement("clear-obstacles-btn") as HTMLButtonElement;
-  const addPredatorBtn = getRequiredElement("add-predator-btn") as HTMLButtonElement;
-  const resetBtn = getRequiredElement("reset-btn") as HTMLButtonElement;
-  const viewportHint = getRequiredElement("viewport-hint");
+type DomElements = {
+  readonly viewportContainer: HTMLElement;
+  readonly statusBarElement: HTMLElement;
+  readonly separationSlider: HTMLInputElement;
+  readonly separationDisplay: HTMLElement;
+  readonly alignmentSlider: HTMLInputElement;
+  readonly alignmentDisplay: HTMLElement;
+  readonly cohesionSlider: HTMLInputElement;
+  readonly cohesionDisplay: HTMLElement;
+  readonly playPauseBtn: HTMLButtonElement;
+  readonly speedSlider: HTMLInputElement;
+  readonly speedDisplay: HTMLElement;
+  readonly addBirdBtn: HTMLButtonElement;
+  readonly removeBirdBtn: HTMLButtonElement;
+  readonly clearObstaclesBtn: HTMLButtonElement;
+  readonly addPredatorBtn: HTMLButtonElement;
+  readonly resetBtn: HTMLButtonElement;
+  readonly viewportHint: HTMLElement;
+};
 
-  let state: SimulationState = createInitialState();
+const queryDomElements = (): DomElements => ({
+  viewportContainer: getRequiredElement("viewport"),
+  statusBarElement: getRequiredElement("status-bar"),
+  separationSlider: getRequiredElement("separation-slider") as HTMLInputElement,
+  separationDisplay: getRequiredElement("separation-value"),
+  alignmentSlider: getRequiredElement("alignment-slider") as HTMLInputElement,
+  alignmentDisplay: getRequiredElement("alignment-value"),
+  cohesionSlider: getRequiredElement("cohesion-slider") as HTMLInputElement,
+  cohesionDisplay: getRequiredElement("cohesion-value"),
+  playPauseBtn: getRequiredElement("play-pause-btn") as HTMLButtonElement,
+  speedSlider: getRequiredElement("speed-slider") as HTMLInputElement,
+  speedDisplay: getRequiredElement("speed-value"),
+  addBirdBtn: getRequiredElement("add-bird-btn") as HTMLButtonElement,
+  removeBirdBtn: getRequiredElement("remove-bird-btn") as HTMLButtonElement,
+  clearObstaclesBtn: getRequiredElement("clear-obstacles-btn") as HTMLButtonElement,
+  addPredatorBtn: getRequiredElement("add-predator-btn") as HTMLButtonElement,
+  resetBtn: getRequiredElement("reset-btn") as HTMLButtonElement,
+  viewportHint: getRequiredElement("viewport-hint"),
+});
 
-  const sceneManager = createSceneManager(viewportContainer);
-  const birdRenderer = createBirdRenderer(sceneManager.scene, MAX_BIRDS);
-  const obstacleRenderer = createObstacleRenderer(sceneManager.scene);
-  const predatorRenderer = createPredatorRenderer(sceneManager.scene);
-  const cameraController = createCameraController(
-    sceneManager.camera,
-    sceneManager.renderer.domElement
-  );
+type StateRef = {
+  current: SimulationState;
+};
 
+const setupFlockingSliders = (
+  elements: DomElements,
+  stateRef: StateRef
+): void => {
   const bindFlockingSlider = (
     slider: HTMLInputElement,
     display: HTMLElement,
     paramName: keyof FlockingParameters
   ): void => {
-    slider.value = String(state.parameters.flocking[paramName]);
+    slider.value = String(stateRef.current.parameters.flocking[paramName]);
     createSliderWithDisplay(slider, display, (value: number) => {
-      state = updateFlockingParam(state, paramName, value);
+      stateRef.current = updateFlockingParam(stateRef.current, paramName, value);
     });
   };
 
-  bindFlockingSlider(separationSlider, separationDisplay, "separationWeight");
-  bindFlockingSlider(alignmentSlider, alignmentDisplay, "alignmentWeight");
-  bindFlockingSlider(cohesionSlider, cohesionDisplay, "cohesionWeight");
+  bindFlockingSlider(elements.separationSlider, elements.separationDisplay, "separationWeight");
+  bindFlockingSlider(elements.alignmentSlider, elements.alignmentDisplay, "alignmentWeight");
+  bindFlockingSlider(elements.cohesionSlider, elements.cohesionDisplay, "cohesionWeight");
+};
 
-  bindPlayPauseButton(playPauseBtn, () => {
-    state = togglePlayback(state);
-    playPauseBtn.textContent = state.playbackState === "running" ? "Pause" : "Play";
+const setupPlaybackControls = (
+  elements: DomElements,
+  stateRef: StateRef
+): void => {
+  bindPlayPauseButton(elements.playPauseBtn, () => {
+    stateRef.current = togglePlayback(stateRef.current);
+    elements.playPauseBtn.textContent = stateRef.current.playbackState === "running" ? "Pause" : "Play";
   });
 
-  bindSpeedSlider(speedSlider, speedDisplay, (value: number) => {
-    state = setSpeed(state, value);
+  bindSpeedSlider(elements.speedSlider, elements.speedDisplay, (value: number) => {
+    stateRef.current = setSpeed(stateRef.current, value);
   });
+};
 
-  const updateHintVisibility = (): void => {
-    viewportHint.style.display = state.birds.length === 0 ? "block" : "none";
-    removeBirdBtn.disabled = state.birds.length === 0;
-  };
-
-  bindBirdButtons(addBirdBtn, removeBirdBtn, {
+const setupBirdManagement = (
+  elements: DomElements,
+  stateRef: StateRef,
+  updateHintVisibility: () => void
+): void => {
+  bindBirdButtons(elements.addBirdBtn, elements.removeBirdBtn, {
     onAdd: () => {
-      if (state.birds.length < MAX_BIRDS) {
-        state = addBirdRandom(state);
+      if (stateRef.current.birds.length < MAX_BIRDS) {
+        stateRef.current = addBirdRandom(stateRef.current);
         updateHintVisibility();
       }
     },
     onRemove: () => {
-      state = removeBird(state);
+      stateRef.current = removeBird(stateRef.current);
       updateHintVisibility();
     },
   });
+};
 
-  const randomVelocityComponent = (): number => (Math.random() - 0.5) * 4;
+const randomVelocityComponent = (): number => (Math.random() - 0.5) * 4;
 
-  const OBSTACLE_RADIUS_SCALE = 20;
-
-  createViewportInputHandler(sceneManager.renderer.domElement, {
+const setupViewportInput = (
+  canvas: HTMLCanvasElement,
+  sceneManager: ReturnType<typeof createSceneManager>,
+  stateRef: StateRef,
+  updateHintVisibility: () => void
+): void => {
+  createViewportInputHandler(canvas, {
     onClick: (normalizedX: number, normalizedY: number) => {
-      if (state.birds.length >= MAX_BIRDS) {
+      if (stateRef.current.birds.length >= MAX_BIRDS) {
         return;
       }
       const worldPos = screenToWorldPosition(
@@ -118,7 +149,7 @@ const initialize = (): void => {
         y: randomVelocityComponent(),
         z: randomVelocityComponent(),
       };
-      state = addBird(state, worldPos, velocity);
+      stateRef.current = addBird(stateRef.current, worldPos, velocity);
       updateHintVisibility();
     },
     onDrag: (centerNormX: number, centerNormY: number, normalizedRadius: number) => {
@@ -131,48 +162,56 @@ const initialize = (): void => {
         sceneManager.camera.aspect
       );
       const worldRadius = normalizedRadius * OBSTACLE_RADIUS_SCALE;
-      state = addObstacle(state, worldPos, Math.max(worldRadius, 3));
+      stateRef.current = addObstacle(stateRef.current, worldPos, Math.max(worldRadius, 3));
     },
   });
+};
 
-  addPredatorBtn.addEventListener("click", () => {
-    const { min, max } = state.parameters.worldBounds;
+const setupEntityButtons = (
+  elements: DomElements,
+  stateRef: StateRef
+): void => {
+  elements.addPredatorBtn.addEventListener("click", () => {
+    const { min, max } = stateRef.current.parameters.worldBounds;
     const position = {
       x: min.x + Math.random() * (max.x - min.x),
       y: min.y + Math.random() * (max.y - min.y),
       z: min.z + Math.random() * (max.z - min.z),
     };
-    state = addPredator(state, position);
+    stateRef.current = addPredator(stateRef.current, position);
   });
 
-  clearObstaclesBtn.addEventListener("click", () => {
-    state = clearObstacles(state);
+  elements.clearObstaclesBtn.addEventListener("click", () => {
+    stateRef.current = clearObstacles(stateRef.current);
   });
+};
 
-  const syncSlidersToState = (): void => {
-    separationSlider.value = String(state.parameters.flocking.separationWeight);
-    separationDisplay.textContent = state.parameters.flocking.separationWeight.toFixed(2);
-    alignmentSlider.value = String(state.parameters.flocking.alignmentWeight);
-    alignmentDisplay.textContent = state.parameters.flocking.alignmentWeight.toFixed(2);
-    cohesionSlider.value = String(state.parameters.flocking.cohesionWeight);
-    cohesionDisplay.textContent = state.parameters.flocking.cohesionWeight.toFixed(2);
-    speedSlider.value = String(state.simulationSpeed);
-    speedDisplay.textContent = `${state.simulationSpeed.toFixed(2)}x`;
-    playPauseBtn.textContent = state.playbackState === "running" ? "Pause" : "Play";
-  };
+const syncSlidersToState = (
+  elements: DomElements,
+  stateRef: StateRef
+): void => {
+  elements.separationSlider.value = String(stateRef.current.parameters.flocking.separationWeight);
+  elements.separationDisplay.textContent = stateRef.current.parameters.flocking.separationWeight.toFixed(2);
+  elements.alignmentSlider.value = String(stateRef.current.parameters.flocking.alignmentWeight);
+  elements.alignmentDisplay.textContent = stateRef.current.parameters.flocking.alignmentWeight.toFixed(2);
+  elements.cohesionSlider.value = String(stateRef.current.parameters.flocking.cohesionWeight);
+  elements.cohesionDisplay.textContent = stateRef.current.parameters.flocking.cohesionWeight.toFixed(2);
+  elements.speedSlider.value = String(stateRef.current.simulationSpeed);
+  elements.speedDisplay.textContent = `${stateRef.current.simulationSpeed.toFixed(2)}x`;
+  elements.playPauseBtn.textContent = stateRef.current.playbackState === "running" ? "Pause" : "Play";
+};
 
-  bindResetButton(resetBtn, () => {
-    state = resetState();
-    syncSlidersToState();
-    updateHintVisibility();
-  });
-
-  updateHintVisibility();
-
+const startFrameLoop = (
+  stateRef: StateRef,
+  sceneManager: ReturnType<typeof createSceneManager>,
+  birdRenderer: ReturnType<typeof createBirdRenderer>,
+  obstacleRenderer: ReturnType<typeof createObstacleRenderer>,
+  predatorRenderer: ReturnType<typeof createPredatorRenderer>,
+  cameraController: ReturnType<typeof createCameraController>,
+  statusBarElement: HTMLElement
+): void => {
   let previousTime = performance.now();
   let fps = 60;
-
-  const FPS_SMOOTHING = 0.9;
 
   const frame = (currentTime: number): void => {
     const deltaTime = (currentTime - previousTime) / 1000;
@@ -180,29 +219,64 @@ const initialize = (): void => {
     fps = FPS_SMOOTHING * fps + (1 - FPS_SMOOTHING) * rawFps;
     previousTime = currentTime;
 
-    state = computeNextFrame(state, deltaTime, simulateTick);
+    stateRef.current = computeNextFrame(stateRef.current, deltaTime, simulateTick);
 
-    birdRenderer.update(state.birds);
-    obstacleRenderer.update(state.obstacles);
-    predatorRenderer.update(state.predators);
+    birdRenderer.update(stateRef.current.birds);
+    obstacleRenderer.update(stateRef.current.obstacles);
+    predatorRenderer.update(stateRef.current.predators);
     cameraController.update();
     sceneManager.render();
 
     updateStatusBar(statusBarElement, {
-      birdCount: state.birds.length,
-      predatorCount: state.predators.length,
-      obstacleCount: state.obstacles.length,
+      birdCount: stateRef.current.birds.length,
+      predatorCount: stateRef.current.predators.length,
+      obstacleCount: stateRef.current.obstacles.length,
       fps,
     });
 
     requestAnimationFrame(frame);
   };
 
+  requestAnimationFrame(frame);
+};
+
+const initialize = (): void => {
+  const elements = queryDomElements();
+  const stateRef: StateRef = { current: createInitialState() };
+
+  const sceneManager = createSceneManager(elements.viewportContainer);
+  const birdRenderer = createBirdRenderer(sceneManager.scene, MAX_BIRDS);
+  const obstacleRenderer = createObstacleRenderer(sceneManager.scene);
+  const predatorRenderer = createPredatorRenderer(sceneManager.scene);
+  const cameraController = createCameraController(
+    sceneManager.camera,
+    sceneManager.renderer.domElement
+  );
+
+  const updateHintVisibility = (): void => {
+    elements.viewportHint.style.display = stateRef.current.birds.length === 0 ? "block" : "none";
+    elements.removeBirdBtn.disabled = stateRef.current.birds.length === 0;
+  };
+
+  setupFlockingSliders(elements, stateRef);
+  setupPlaybackControls(elements, stateRef);
+  setupBirdManagement(elements, stateRef, updateHintVisibility);
+  setupViewportInput(sceneManager.renderer.domElement, sceneManager, stateRef, updateHintVisibility);
+  setupEntityButtons(elements, stateRef);
+
+  bindResetButton(elements.resetBtn, () => {
+    stateRef.current = resetState();
+    syncSlidersToState(elements, stateRef);
+    updateHintVisibility();
+  });
+
+  updateHintVisibility();
+
   window.addEventListener("resize", () => {
     sceneManager.resize();
   });
 
-  requestAnimationFrame(frame);
+  startFrameLoop(stateRef, sceneManager, birdRenderer, obstacleRenderer, predatorRenderer, cameraController, elements.statusBarElement);
 };
 
 initialize();

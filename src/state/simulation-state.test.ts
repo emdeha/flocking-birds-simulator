@@ -27,4 +27,32 @@ describe("createInitialState", () => {
     expect(state.playbackState).toBe("running");
     expect(state.simulationSpeed).toBe(1.0);
   });
+
+  it("spaces initial birds with distinct positions across all three axes", () => {
+    const state = createInitialState();
+
+    const bird0 = state.birds[0];
+    const bird1 = state.birds[1];
+
+    expect(bird0.position.x).toBe(0);
+    expect(bird0.position.y).toBe(0);
+    expect(bird0.position.z).toBe(0);
+
+    expect(bird1.position.x).toBe(10);
+    expect(bird1.position.y).toBe(5);
+    expect(bird1.position.z).toBe(3);
+
+    expect(bird0.velocity.z).toBe(-0.2);
+  });
+
+  it("sets world bounds symmetrically with negative minimums", () => {
+    const state = createInitialState();
+
+    expect(state.parameters.worldBounds.min.x).toBe(-200);
+    expect(state.parameters.worldBounds.min.y).toBe(-200);
+    expect(state.parameters.worldBounds.min.z).toBe(-200);
+    expect(state.parameters.worldBounds.max.x).toBe(200);
+    expect(state.parameters.worldBounds.max.y).toBe(200);
+    expect(state.parameters.worldBounds.max.z).toBe(200);
+  });
 });

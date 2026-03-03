@@ -68,4 +68,19 @@ describe("simulateTick", () => {
     );
     expect(nextState).not.toBe(state);
   });
+
+  it("applies forces across all three axes when birds are separated in 3D", () => {
+    const birds = [
+      createBird({ x: 0, y: 0, z: 0 }, { x: 0, y: 0, z: 2 }),
+      createBird({ x: 0, y: 0, z: 5 }, { x: 0, y: 0, z: -2 }),
+    ];
+    const state = createState(birds);
+
+    const nextState = simulateTick(state, 1 / 60);
+
+    const bird0 = nextState.birds[0];
+    const bird1 = nextState.birds[1];
+    expect(bird0.position.z).not.toBe(0);
+    expect(bird1.position.z).not.toBe(5);
+  });
 });

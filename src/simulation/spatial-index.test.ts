@@ -37,4 +37,32 @@ describe("Spatial index", () => {
 
     expect(neighbors).toEqual([]);
   });
+
+  it("finds neighbors separated along the z-axis within radius", () => {
+    const positions: ReadonlyArray<Vector3> = [
+      createPosition(0, 0, 0),
+      createPosition(0, 0, 8),
+      createPosition(0, 0, 50),
+    ];
+
+    const grid = buildSpatialGrid(positions, 10);
+    const neighbors = queryNeighbors(grid, positions, 0, 10);
+
+    expect(neighbors).toContain(1);
+    expect(neighbors).not.toContain(2);
+  });
+
+  it("correctly handles neighbors in different grid cells across all axes", () => {
+    const positions: ReadonlyArray<Vector3> = [
+      createPosition(5, 5, 5),
+      createPosition(14, 14, 14),
+      createPosition(-5, -5, -5),
+    ];
+
+    const grid = buildSpatialGrid(positions, 20);
+    const neighbors = queryNeighbors(grid, positions, 0, 20);
+
+    expect(neighbors).toContain(1);
+    expect(neighbors).toContain(2);
+  });
 });

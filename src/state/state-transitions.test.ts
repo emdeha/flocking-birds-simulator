@@ -83,6 +83,12 @@ describe("removeBird", () => {
     const stillEmpty = removeBird(emptyState);
     expect(stillEmpty.birds.length).toBe(0);
   });
+
+  it("returns the exact same state reference when removing from an empty state", () => {
+    const emptyState = createEmptyState();
+    const result = removeBird(emptyState);
+    expect(result).toBe(emptyState);
+  });
 });
 
 describe("addObstacle", () => {

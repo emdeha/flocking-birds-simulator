@@ -31,6 +31,28 @@ describe("Flocking rules", () => {
       expect(vectorMagnitude(force)).toBeGreaterThan(0);
       expect(force.y).toBeLessThan(0);
     });
+
+    it("steers away from a neighbor on the z-axis", () => {
+      const bird = createBird({ x: 0, y: 0, z: 0 });
+      const neighbors = [createBird({ x: 0, y: 0, z: 5 })];
+
+      const force = computeSeparation(bird, neighbors, 25);
+
+      expect(force.z).toBeLessThan(0);
+      expect(force.x).toBeCloseTo(0, 5);
+      expect(force.y).toBeCloseTo(0, 5);
+    });
+
+    it("produces proportionally stronger force for closer neighbors", () => {
+      const bird = createBird({ x: 0, y: 0, z: 0 });
+      const closeNeighbor = [createBird({ x: 2, y: 0, z: 0 })];
+      const farNeighbor = [createBird({ x: 10, y: 0, z: 0 })];
+
+      const closeForce = computeSeparation(bird, closeNeighbor, 25);
+      const farForce = computeSeparation(bird, farNeighbor, 25);
+
+      expect(Math.abs(closeForce.x)).toBeGreaterThan(Math.abs(farForce.x));
+    });
   });
 
   describe("Alignment", () => {
