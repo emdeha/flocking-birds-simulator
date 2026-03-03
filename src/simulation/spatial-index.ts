@@ -1,5 +1,4 @@
 import type { Vector3 } from "../types/vector";
-import { vectorDistance } from "../types/vector";
 
 type SpatialGrid = {
   readonly cellSize: number;
@@ -15,7 +14,8 @@ const buildSpatialGrid = (
 ): SpatialGrid => {
   const cells = new Map<string, Array<number>>();
 
-  positions.forEach((pos, index) => {
+  for (let index = 0; index < positions.length; index++) {
+    const pos = positions[index];
     const cx = Math.floor(pos.x / cellSize);
     const cy = Math.floor(pos.y / cellSize);
     const cz = Math.floor(pos.z / cellSize);
@@ -26,7 +26,7 @@ const buildSpatialGrid = (
     } else {
       cells.set(key, [index]);
     }
-  });
+  }
 
   return { cellSize, cells };
 };
@@ -38,6 +38,7 @@ const queryNeighbors = (
   radius: number
 ): ReadonlyArray<number> => {
   const pos = positions[index];
+  const radiusSq = radius * radius;
   const cellRadius = Math.ceil(radius / grid.cellSize);
   const cx = Math.floor(pos.x / grid.cellSize);
   const cy = Math.floor(pos.y / grid.cellSize);
@@ -51,9 +52,14 @@ const queryNeighbors = (
         const key = cellKey(cx + dx, cy + dy, cz + dz);
         const cell = grid.cells.get(key);
         if (!cell) continue;
-        for (const candidateIndex of cell) {
+        for (let ci = 0; ci < cell.length; ci++) {
+          const candidateIndex = cell[ci];
           if (candidateIndex === index) continue;
-          if (vectorDistance(pos, positions[candidateIndex]) <= radius) {
+          const candidate = positions[candidateIndex];
+          const ddx = pos.x - candidate.x;
+          const ddy = pos.y - candidate.y;
+          const ddz = pos.z - candidate.z;
+          if (ddx * ddx + ddy * ddy + ddz * ddz <= radiusSq) {
             neighbors.push(candidateIndex);
           }
         }

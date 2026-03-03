@@ -5,7 +5,6 @@ import {
   vectorSubtract,
   vectorScale,
   vectorNormalize,
-  vectorMagnitude,
 } from "../types/vector";
 
 const ZERO: Vector3 = { x: 0, y: 0, z: 0 };
@@ -15,22 +14,33 @@ const computeSeparation = (
   neighbors: ReadonlyArray<Bird>,
   separationRadius: number
 ): Vector3 => {
-  const closeNeighbors = neighbors.filter(
-    (n) =>
-      vectorMagnitude(vectorSubtract(bird.position, n.position)) <
-      separationRadius
-  );
+  const sepRadiusSq = separationRadius * separationRadius;
+  let steerX = 0;
+  let steerY = 0;
+  let steerZ = 0;
+  let closeCount = 0;
 
-  if (closeNeighbors.length === 0) return ZERO;
+  for (let i = 0; i < neighbors.length; i++) {
+    const n = neighbors[i];
+    const dx = bird.position.x - n.position.x;
+    const dy = bird.position.y - n.position.y;
+    const dz = bird.position.z - n.position.z;
+    const distSq = dx * dx + dy * dy + dz * dz;
 
-  const steer = closeNeighbors.reduce((acc, neighbor) => {
-    const diff = vectorSubtract(bird.position, neighbor.position);
-    const dist = vectorMagnitude(diff);
-    if (dist === 0) return acc;
-    return vectorAdd(acc, vectorScale(vectorNormalize(diff), separationRadius / dist));
-  }, ZERO);
+    if (distSq >= sepRadiusSq || distSq === 0) continue;
 
-  return vectorScale(steer, 1 / closeNeighbors.length);
+    const dist = Math.sqrt(distSq);
+    const scale = separationRadius / (dist * dist);
+    steerX += dx * scale;
+    steerY += dy * scale;
+    steerZ += dz * scale;
+    closeCount++;
+  }
+
+  if (closeCount === 0) return ZERO;
+
+  const invCount = 1 / closeCount;
+  return { x: steerX * invCount, y: steerY * invCount, z: steerZ * invCount };
 };
 
 const computeAlignment = (

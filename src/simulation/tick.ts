@@ -1,6 +1,6 @@
 import type { SimulationState, Bird } from "../types/simulation-types";
 import type { Vector3 } from "../types/vector";
-import { vectorAdd, vectorScale } from "../types/vector";
+import { vectorScale } from "../types/vector";
 import { buildSpatialGrid, queryNeighbors } from "./spatial-index";
 import {
   computeSeparation,
@@ -10,8 +10,6 @@ import {
 import { integrateBird } from "./integrator";
 import { computeObstacleAvoidance } from "./avoidance";
 import { computePredatorFlee } from "./flee";
-
-const ZERO: Vector3 = { x: 0, y: 0, z: 0 };
 
 const simulateTick = (
   state: SimulationState,
@@ -40,13 +38,15 @@ const simulateTick = (
     const avoidance = computeObstacleAvoidance(bird, obstacles, obstacleAvoidanceRadius, obstacleAvoidanceWeight);
     const flee = computePredatorFlee(bird, predators, predatorFleeRadius, predatorFleeWeight);
 
-    const combinedForce = [
-      vectorScale(separation, flocking.separationWeight),
-      vectorScale(alignment, flocking.alignmentWeight),
-      vectorScale(cohesion, flocking.cohesionWeight),
-      avoidance,
-      flee,
-    ].reduce((acc, f) => vectorAdd(acc, f), ZERO);
+    const sepForce = vectorScale(separation, flocking.separationWeight);
+    const alignForce = vectorScale(alignment, flocking.alignmentWeight);
+    const cohForce = vectorScale(cohesion, flocking.cohesionWeight);
+
+    const combinedForce: Vector3 = {
+      x: sepForce.x + alignForce.x + cohForce.x + avoidance.x + flee.x,
+      y: sepForce.y + alignForce.y + cohForce.y + avoidance.y + flee.y,
+      z: sepForce.z + alignForce.z + cohForce.z + avoidance.z + flee.z,
+    };
 
     return integrateBird(bird, combinedForce, deltaTime, maxSpeed, maxForce, worldBounds);
   });
